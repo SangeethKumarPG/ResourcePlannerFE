@@ -63,6 +63,23 @@ const monthlyOrdersData = [
   { month: "Dec", orders: 320 },
 ]
 
+const agentPerformaceData=[{
+  name: 'Agent 1',
+  ticketsResolved:10,
+  ticketsPending:5,
+  ticketsAssigned:15
+},{
+  name: 'Agent 2',
+  ticketsResolved:20,
+  ticketsPending:10,
+  ticketsAssigned:30
+},{
+  name: 'Agent 3',
+  ticketsResolved:30,
+  ticketsPending:15,
+  ticketsAssigned:45
+}]
+
 function Dashboard() {
   return (
     <>
@@ -183,6 +200,22 @@ function Dashboard() {
               <Line type="monotone" dataKey="orders" stroke="limegreen" />
             </LineChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="row mt-4">
+        <Typography variant="h6" className="mt-3 d-inline-block">Agent Performance</Typography>
+        <div className="col-md-12">
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={agentPerformaceData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend layout="vertical" verticalAlign="bottom"/>
+              <Bar dataKey="ticketsResolved" fill="#8884d8" />
+              <Bar dataKey="ticketsPending" fill="red" />
+              <Bar dataKey="ticketsAssigned" fill="orange" />
+            </BarChart>
+          </ResponsiveContainer>    
         </div>
       </div>
     </>

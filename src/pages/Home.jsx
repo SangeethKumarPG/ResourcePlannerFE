@@ -6,7 +6,7 @@ import ImportUserData from '../components/ImportUserData';
 import ExportUserData from '../components/ExportUserData';
 import SupportTicket from '../components/SupportTicket';
 import AgentInfo from '../components/AgentInfo';
-import ManageAgents from '../components/ManageAgents';
+
 import Billing from '../components/Billing';
 import Dashboard from '../components/Dashboard';
 import Orders from '../components/Orders';
