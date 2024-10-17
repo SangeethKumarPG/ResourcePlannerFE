@@ -1,0 +1,73 @@
+.card {
+    width: 90%;
+    max-width: 500px;
+    height: auto;
+    border: none; 
+    border-radius: 30px !important;
+    margin: 20px auto;
+}
+
+.login-card {
+    width: 100%; 
+    height: auto; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 30px !important;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+.input-container {
+    margin-top: 20px !important;
+    width: 100%;
+}
+
+.input-field {
+    width: 100% !important;
+    padding: 15px !important;
+    margin: 10px 0 !important;
+    /* border: 1px solid #ccc !important; */
+    border-radius: 5px !important;
+    color:white !important;
+}
+
+.login-button {
+    width: 100% !important;
+    padding: 15px !important;
+    border: none !important;
+    border-radius: 5px !important;
+    background-color: rgb(241, 187, 70) !important;
+    color: black !important;
+
+    cursor: pointer !important;
+}
+
+@media (max-width: 768px) {
+    .card, .login-card {
+        width: 95%;
+    }
+
+    .input-field {
+        padding: 12px !important;
+    }
+
+    .login-button {
+        padding: 12px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .card, .login-card {
+        width: 98%;
+        padding: 10px;
+    }
+
+    .input-field {
+        padding: 10px !important;
+    }
+
+    .login-button {
+        padding: 10px !important;
+    }
+}
