@@ -91,7 +91,11 @@ function AgentInfo() {
 
   return (
     <>
-      <Box className="my-2" display={"flex"} justifyContent={"space-between"}>
+      <Box
+        className="my-2 p-0"
+        display={"flex"}
+        justifyContent={"space-between"}
+      >
         <h5>Support Agents</h5>
         <Button
           variant="oulined"
@@ -113,14 +117,26 @@ function AgentInfo() {
               display={"flex"}
               justifyContent={"space-between"}
               width={"100%"}
+              flex={"wrap"}
             >
-              <Typography>{`Agent Id: ${agent.id}`}</Typography>
-              <Typography>{`Name: ${agent.name}`}</Typography>
-              <Typography>{`Contact: ${agent.contactNumber}`}</Typography>
-              <Typography>{`Email: ${agent.email}`}</Typography>
+              <Typography className="me-2" variant="h6">{`Agent ID: ${agent.id}`}</Typography>
+              <Typography className="me-2" variant="h6">{`Agent Name: ${agent.name}`}</Typography>
             </Box>
           </AccordionSummary>
           <AccordionDetails>
+            <Box
+              display={"flex"}
+              justifyContent={"centerspaced-between"}
+              width={"100%"}
+              className="mt-1 mb-3"
+            >
+              <Typography
+                className="me-2"
+                variant="body1"
+              >{`Contact Number:${agent.contactNumber}`}</Typography>
+              <Typography variant="body1">{`Email : ${agent.email}`}</Typography>
+            </Box>
+
             <Box
               display={"flex"}
               justifyContent={"space-between"}
@@ -130,7 +146,6 @@ function AgentInfo() {
               <Typography>{`Tickets Pending: ${agent.ticketsPending}`}</Typography>
               <Typography>{`Tickets Assigned: ${agent.ticketsAssigned}`}</Typography>
             </Box>
-            {/* Permissions Section */}
             <Box
               display={"flex"}
               justifyContent={"space-between"}
@@ -138,7 +153,9 @@ function AgentInfo() {
               className="mt-2"
             >
               <div>
-                <p className="me-0 d-inline-block">Orders Read</p>
+                <Typography className="me-0 d-inline-block" variant="body2">
+                  Orders Read
+                </Typography>
                 <Checkbox
                   id={`order-permission-read-${agent.id}`}
                   checked={agent.permissions.orders.read}
@@ -147,7 +164,9 @@ function AgentInfo() {
                 />
               </div>
               <div>
-                <p className="me-0 d-inline-block">Customers Read</p>
+                <Typography className="me-0 d-inline-block" variant="body2">
+                  Customers Read
+                </Typography>
                 <Checkbox
                   id={`customer-permission-read-${agent.id}`}
                   checked={agent.permissions.customers.read}
@@ -160,9 +179,9 @@ function AgentInfo() {
                 />
               </div>
               <div>
-                <p className="me-0 d-inline-block">
+                <Typography className="me-0 d-inline-block" variant="body2">
                   Products and Services Read
-                </p>
+                </Typography>
                 <Checkbox
                   id={`product-permission-read-${agent.id}`}
                   checked={agent.permissions.productsAndServices.read}
@@ -175,6 +194,7 @@ function AgentInfo() {
                 />
               </div>
             </Box>
+
             <Box
               display={"flex"}
               justifyContent={"space-between"}
@@ -182,7 +202,9 @@ function AgentInfo() {
               className="mt-2"
             >
               <div>
-                <p className="me-0 d-inline-block">Orders Write</p>
+                <Typography className="me-0 d-inline-block" variant="body2">
+                  Orders Write
+                </Typography>
                 <Checkbox
                   id={`order-permission-write-${agent.id}`}
                   checked={agent.permissions.orders.write}
@@ -191,7 +213,9 @@ function AgentInfo() {
                 />
               </div>
               <div>
-                <p className="me-0 d-inline-block">Customers Write</p>
+                <Typography className="me-0 d-inline-block" variant="body2">
+                  Customers Write
+                </Typography>
                 <Checkbox
                   id={`customer-permission-write-${agent.id}`}
                   checked={agent.permissions.customers.write}
@@ -204,9 +228,9 @@ function AgentInfo() {
                 />
               </div>
               <div>
-                <p className="me-0 d-inline-block">
+                <Typography className="me-0 d-inline-block" variant="body2">
                   Products and Services Write
-                </p>
+                </Typography>
                 <Checkbox
                   id={`product-permission-write-${agent.id}`}
                   checked={agent.permissions.productsAndServices.write}
@@ -219,6 +243,7 @@ function AgentInfo() {
                 />
               </div>
             </Box>
+
             <Box
               display={"flex"}
               justifyContent={"space-between"}
@@ -226,7 +251,9 @@ function AgentInfo() {
               className="mt-2"
             >
               <div>
-                <p className="me-0 d-inline-block">Orders Delete</p>
+                <Typography className="me-0 d-inline-block" variant="body2">
+                  Orders Delete
+                </Typography>
                 <Checkbox
                   id={`order-permission-delete-${agent.id}`}
                   checked={agent.permissions.orders.delete}
@@ -239,7 +266,9 @@ function AgentInfo() {
                 />
               </div>
               <div>
-                <p className="me-0 d-inline-block">Customers Delete</p>
+                <Typography className="me-0 d-inline-block" variant="body2">
+                  Customers Delete
+                </Typography>
                 <Checkbox
                   id={`customer-permission-delete-${agent.id}`}
                   checked={agent.permissions.customers.delete}
@@ -252,9 +281,9 @@ function AgentInfo() {
                 />
               </div>
               <div>
-                <p className="me-0 d-inline-block">
+                <Typography className="me-0 d-inline-block" variant="body2">
                   Products and Services Delete
-                </p>
+                </Typography>
                 <Checkbox
                   id={`product-permission-delete-${agent.id}`}
                   checked={agent.permissions.productsAndServices.delete}
@@ -267,6 +296,7 @@ function AgentInfo() {
                 />
               </div>
             </Box>
+
             <Box
               fullWidth
               className="mt-2"
@@ -274,9 +304,9 @@ function AgentInfo() {
               justifyContent={"center"}
             >
               <div>
-                <p className="me-0 d-inline-block">
+                <Typography className="me-0 d-inline-block" variant="body2">
                   All Support Ticket Permissions
-                </p>
+                </Typography>
                 <Checkbox
                   id={`support-ticket-all-permission-${agent.id}`}
                   checked={agent.permissions.supportTicketsAll}
@@ -289,6 +319,7 @@ function AgentInfo() {
                 />
               </div>
             </Box>
+
             <Box display={"flex"} justifyContent={"center"} className="mt-2">
               {editAgentId === agent.id ? (
                 <Button variant="contained" onClick={handleSaveClick}>
@@ -323,83 +354,105 @@ function AgentInfo() {
       <Dialog
         open={addAgentDialog}
         onClose={handleAddAgentClose}
-        aria-labelledby="form-add-agent">
-          <DialogTitle>Add New Support Agent</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              To add a new support agent, please enter their name, contact number, email, and any initial permissions.
-            </DialogContentText>
-            <TextField label="Agent Name" fullWidth className="mt-2" required/>
-            <TextField label="Contact Number" fullWidth className="mt-2" required/>
-            <TextField label="Email" fullWidth className="mt-2" required/>
-            <Box display={"flex"} justifyContent={"space-between"} className="mt-2">
-              <div>
-                <p className="me-0 d-inline-block">Orders Read</p>
-                <Checkbox id="order-permission-read-new" />
-              </div>
-              <div>
-                <p className="me-0 d-inline-block">Customers Read</p>
-                <Checkbox id="customer-permission-read-new" />
-              </div>
-              <div>
-                <p className="me-0 d-inline-block">
-                  Products and Services Read
-                </p>
-                <Checkbox id="product-permission-read-new" />
-              </div>
-            </Box>
-            <Box display={"flex"} justifyContent={"space-between"}>
-              <div>
-                <p className="me-0 d-inline-block">Orders Write</p>
-                <Checkbox id="order-permission-write-new" />
-              </div>
-              <div>
-                <p className="me-0 d-inline-block">Customers Write</p>
-                <Checkbox id="customer-permission-write-new" />
-              </div>
-              <div>
-                <p className="me-0 d-inline-block">
-                  Products and Services Write
-                </p>
-                <Checkbox id="product-permission-write-new" />
-              </div>
-            </Box>
-            <Box display={"flex"} justifyContent={"space-between"}>
-              <div>
-                <p className="me-0 d-inline-block">Orders Delete</p>
-                <Checkbox id="order-permission-delete-new" />
-              </div>
-              <div>
-                <p className="me-0 d-inline-block">Customers Delete</p>
-                <Checkbox id="customer-permission-delete-new" />
-              </div>
-              <div>
-                <p className="me-0 d-inline-block">
-                  Products and Services Delete
-                </p>
-                <Checkbox id="product-permission-delete-new" />
-              </div>
-            </Box>
-            <Box fullWidth className="mt-2" display={"flex"} justifyContent={"space-between"}>
-              <Button variant="outlined" label="cancel" onClick={handleAddAgentClose}
-                sx={{
-                  '&:hover':{
-                    backgroundColor: 'red',
-                    color: 'white'
-                  }
-                }}
-              >cancel</Button>
-              <Button variant="outlined" label="add" onClick={handleAddAgentClose} 
-                sx={{
-                  '&:hover':{
-                    backgroundColor: 'green',
-                    color: 'white'
-                  }
-                }}
-              >add</Button>
-            </Box>
-          </DialogContent>
-        </Dialog>
+        aria-labelledby="form-add-agent"
+      >
+        <DialogTitle>Add New Support Agent</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To add a new support agent, please enter their name, contact number,
+            email, and any initial permissions.
+          </DialogContentText>
+          <TextField label="Agent Name" fullWidth className="mt-2" required />
+          <TextField
+            label="Contact Number"
+            fullWidth
+            className="mt-2"
+            required
+          />
+          <TextField label="Email" fullWidth className="mt-2" required />
+          <Box
+            display={"flex"}
+            justifyContent={"space-between"}
+            className="mt-2"
+          >
+            <div>
+              <p className="me-0 d-inline-block">Orders Read</p>
+              <Checkbox id="order-permission-read-new" />
+            </div>
+            <div>
+              <p className="me-0 d-inline-block">Customers Read</p>
+              <Checkbox id="customer-permission-read-new" />
+            </div>
+            <div>
+              <p className="me-0 d-inline-block">Products and Services Read</p>
+              <Checkbox id="product-permission-read-new" />
+            </div>
+          </Box>
+          <Box display={"flex"} justifyContent={"space-between"}>
+            <div>
+              <p className="me-0 d-inline-block">Orders Write</p>
+              <Checkbox id="order-permission-write-new" />
+            </div>
+            <div>
+              <p className="me-0 d-inline-block">Customers Write</p>
+              <Checkbox id="customer-permission-write-new" />
+            </div>
+            <div>
+              <p className="me-0 d-inline-block">Products and Services Write</p>
+              <Checkbox id="product-permission-write-new" />
+            </div>
+          </Box>
+          <Box display={"flex"} justifyContent={"space-between"}>
+            <div>
+              <p className="me-0 d-inline-block">Orders Delete</p>
+              <Checkbox id="order-permission-delete-new" />
+            </div>
+            <div>
+              <p className="me-0 d-inline-block">Customers Delete</p>
+              <Checkbox id="customer-permission-delete-new" />
+            </div>
+            <div>
+              <p className="me-0 d-inline-block">
+                Products and Services Delete
+              </p>
+              <Checkbox id="product-permission-delete-new" />
+            </div>
+          </Box>
+          <Box
+            fullWidth
+            className="mt-2"
+            display={"flex"}
+            justifyContent={"space-between"}
+          >
+            <Button
+              variant="outlined"
+              label="cancel"
+              onClick={handleAddAgentClose}
+              sx={{
+                "&:hover": {
+                  backgroundColor: "red",
+                  color: "white",
+                },
+              }}
+            >
+              cancel
+            </Button>
+            <Button
+              variant="outlined"
+              label="add"
+              onClick={handleAddAgentClose}
+              sx={{
+                "&:hover": {
+                  backgroundColor: "green",
+                  color: "white",
+                },
+              }}
+            >
+              add
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -210,7 +210,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
             fullWidth
           />
         </div>
-        <div className="col-md-2 pe-0">
+        <div className="col-md-2 ps-0">
           <Button
             variant="outlined"
             color="primary"
