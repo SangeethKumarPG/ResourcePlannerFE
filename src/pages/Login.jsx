@@ -1,13 +1,42 @@
 import React from "react";
 import loginPageImage from "../assets/login-screen-image.png";
 import "./Login.css";
+import { useState } from "react";
+import { loginAPI } from "../services/allAPI";
 
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
-function Login() {
+function Login({setIsLoggedIn}) {
+  const [userDetails, setUserDetails] = useState({
+    username:"",
+    password:""
+  });
   const navigate = useNavigate();
+  const handleLogin = async ()=>{
+    if(!userDetails.username || !userDetails.password){
+      toast.error("Please enter all fields",{
+        position: "top-center"
+        });
+    }else{
+      const response = await loginAPI(userDetails);
+      if(response.status === 200){
+        toast.success("Login successful",{
+          position: "top-center"
+        });
+        console.log(response.data);
+        sessionStorage.setItem("userData",JSON.stringify(response.data));
+        setIsLoggedIn(true);
+        navigate("/home");
+      }else{
+        toast.error("Invalid username or password",{
+          position: "top-center"
+        })
+      }
+    }
+  }
   return (
     <>
       <div className="d-flex flex-column flex-md-row align-items-center justify-content-center mt-5 mb-5">
@@ -50,6 +79,7 @@ function Login() {
                 },
               }}
               fullWidth
+              onChange={(e)=>setUserDetails({...userDetails, username:e.target.value})}
             />
             <TextField
               type="password"
@@ -80,12 +110,13 @@ function Login() {
                 },
               }}
               fullWidth
+              onChange={(e)=>setUserDetails({...userDetails, password:e.target.value})}
             />
             <Button
               variant="outlined"
               color="success"
               className="mt-3 mb-2 form-control login-button"
-              onClick={()=>navigate("/home")}
+              onClick={handleLogin}
             >
               Login
             </Button>

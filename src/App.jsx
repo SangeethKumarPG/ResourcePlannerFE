@@ -9,18 +9,20 @@ import { Routes, Route } from'react-router-dom'
 import Login from './pages/Login'
 import Header from './components/Header'
 import Home from './pages/Home'
+import { ToastContainer } from'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 function App() {
   const [count, setCount] = useState(0)
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   return (
     <>
-      <Header/>
+      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn}/>
       <Routes>
-          <Route path="" element={<Login/>} />
+          <Route path="" element={<Login setIsLoggedIn={setIsLoggedIn}/>} />
           <Route path="/home" element={<Home/>} />
       </Routes>
-     
+      <ToastContainer autoClose={2000} hideProgressBar={true}/>
     </>
   )
 }
