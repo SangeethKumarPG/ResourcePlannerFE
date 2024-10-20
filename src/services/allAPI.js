@@ -13,11 +13,15 @@ export const fetchProductsServicesAPI = async(header)=>{
 
 // add products and services
 export const addProductsServicesAPI = async(productsServiceDetails, header)=>{
-    console.log("Inside all api")
+    // console.log("Inside all api")
     return await commonAPI("POST",`${BASE_URL}/products-and-services`,productsServiceDetails,header);
 }
 
 // edit products and services
-export const editProductsServicesAPI = async(productsServiceDetails, id)=>{
-    return await commonAPI("PUT",`${BASE_URL}/products-and-services/${id}`,productsServiceDetails,"");
+export const editProductsServicesAPI = async(productsServiceDetails,header, id)=>{
+    return await commonAPI("PUT",`${BASE_URL}/products-and-services/${id}`,productsServiceDetails,header);
+}
+
+export const deleteProductsServicesAPI = async(id, header)=>{
+    return await commonAPI("DELETE",`${BASE_URL}/products-and-services/${id}`,{},header);
 }

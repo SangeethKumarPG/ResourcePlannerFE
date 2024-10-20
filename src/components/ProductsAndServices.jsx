@@ -21,7 +21,7 @@ import {
   DialogActions,
 } from "@mui/material";
 
-import { fetchProductsServices, addProductsServices, editProductsServices } from "../redux/productsAndServicesSlice";
+import { fetchProductsServices, addProductsServices, editProductsServices, deleteProductsServices } from "../redux/productsAndServicesSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 function ProductsAndServices() {
@@ -30,6 +30,8 @@ function ProductsAndServices() {
   const [showWebsite, setShowWebsite] = useState(false);
   const [showServer, setShowServer] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedRow, setEditedRow] = useState(null);
   const dispatch = useDispatch();
   const {items, status} = useSelector((state)=>state.productsAndServices);
 
@@ -37,38 +39,30 @@ function ProductsAndServices() {
   
   const handleClickOpen = () => {
     setOpen(true);
+    setIsEditing(false);
+    setEditedRow(null);
+    setFormData({
+      serviceName: "",
+      domain: "",
+      sslCert: false,
+      website: false,
+      server: false,
+      emailServer: false,
+      duration: "",
+      price: "",
+    });
   };
 
   const handleClose = () => {
     setOpen(false);
+    setShowEmail(false);
+    setShowServer(false);
+    setShowWebsite(false);
+    setShowSSL(false);
+    setIsEditing(false);
   };
 
-  const initialRows = [
-    {
-      id: 1,
-      serviceName: "Service A",
-      domain: "servicea.com",
-      server: "AWS",
-      sslCert: "✅",
-      website: "https://servicea.com",
-      serviceProvider: "AWS",
-      numberOfUsers: 100,
-      duration: "12 months",
-      price: "$500",
-    },
-    {
-      id: 2,
-      serviceName: "Service B",
-      domain: "serviceb.com",
-      server: "Google Cloud",
-      sslCert: "❌",
-      website: "https://serviceb.com",
-      serviceProvider: "Google",
-      numberOfUsers: 50,
-      duration: "6 months",
-      price: "$300",
-    },
-  ];
+  
   useEffect(()=>{
     dispatch(fetchProductsServices());
 
@@ -90,16 +84,18 @@ function ProductsAndServices() {
 
   const columns = [
     { field: "serviceName", headerName: "Service Name", minWidth: 150 },
-    { field: "domain", headerName: "Domain", minWidth: 150 },
-    { field: "server", headerName: "Server", minWidth: 150 },
-    { field: "serverProvider", headerName : "Server Provider", minWidth: 150 },
-    { field: "sslCert", headerName: "SSL Certificate", minWidth: 150 },
-    { field: "sslCertProvider", headerName : "SSL Certificate Provider", minWidth: 150 },
-    { field: "website", headerName: "Website", minWidth: 200 },
-    { field: "websiteHostingProvider", headerName : "Website Hosting Provider", minWidth: 150 },
-    { field : "Email", headerName: "Email", minWidth: 150 },
-    { field: "emailServiceProvider", headerName: "Email Service Provider", minWidth: 150 },
-    { field: "numberOfUsers", headerName: "Number of Users", minWidth: 150 },
+    { field: "domain", headerName: "Domain", minWidth: 50 },
+    { field: "server", headerName: "Server", minWidth: 50 , type:"boolean", },
+    { field: "sslCert", headerName: "SSL Certificate", minWidth: 50 , type:"boolean",},
+    { field: "website", headerName: "Website", minWidth: 50 , type:"boolean",},
+    { field : "emailServer", headerName: "Email", minWidth: 50 , type:"boolean",},
+    { field: "serverProvider", headerName : "Server Provider", minWidth: 150 , renderCell: (params) => (<span>{params.value || "N/A"}</span>)},
+    {field: "serverCapacity", headerName: "Server Capacity", minWidth: 150, renderCell: (params) => (<span>{params.value || "N/A"}</span>)},
+    { field: "sslCertProvider", headerName : "SSL Certificate Provider", minWidth: 150 , renderCell: (params) => (<span>{params.value || "N/A"}</span>)},
+    { field: "websiteHostProvider", headerName : "Website Hosting Provider", minWidth: 150, renderCell: (params) => (<span>{params.value || "N/A"}</span>) },
+    
+    { field: "emailProvider", headerName: "Email Service Provider", minWidth: 150, renderCell: (params) => (<span>{params.value || "N/A"}</span>) },
+    { field: "numberOfUsers", headerName: "Number of Users", minWidth: 150, renderCell: (params) => (<span>{params.value || "N/A"}</span>) },
     { field: "duration", headerName: "Duration", minWidth: 150 },
     { field: "price", headerName: "Price", minWidth: 150 },
     {
@@ -125,11 +121,35 @@ function ProductsAndServices() {
   ];
 
   const handleEdit = (row) => {
-    console.log("Edit:", row);
+    // console.log("Edit:", row);
+    setOpen(true);
+    setIsEditing(true);
+    setEditedRow(row);
+    setFormData({
+      serviceName: row.serviceName,
+      domain: row.domain,
+      sslCert: row.sslCert,
+      website: row.website,
+      server: row.server,
+      emailServer: row.emailServer,
+      duration: row.duration,
+      price: row.price,
+      sslCertProvider: row.sslCertProvider || "",
+      websiteHostProvider: row.websiteHostProvider || "",
+      serverProvider: row.serverProvider || "",
+      emailProvider: row.emailProvider || "",
+      numberOfUsers: row.numberOfUsers || 0,
+      serverCapacity: row.serverCapacity || "",
+    });
+    setShowSSL(row.sslCert);
+    setShowWebsite(row.website);
+    setShowServer(row.server);
+    setShowEmail(row.emailServer);
   };
 
   const handleDelete = (row) => {
     console.log("Delete:", row);
+    dispatch(deleteProductsServices(row._id));
   };
 
   const handleSearch = (e) => {
@@ -145,11 +165,20 @@ function ProductsAndServices() {
     setFilteredRows(filteredRows);
   };
 
-  const handleAddProducts = (e)=>{
+  const handleAddOrEditProducts = (e) => { 
     e.preventDefault();
-    console.log(formData);
-    dispatch(addProductsServices(formData));   
-    handleClose()
+    if(isEditing){
+      // console.log("Edit:", editedRow._id, "formdata:",formData)
+      dispatch(editProductsServices({id:editedRow._id, updatedProduct:formData}))
+      
+    }else{
+      setShowSSL(false);
+      setShowWebsite(false);
+      setShowServer(false);
+      setShowEmail(false);
+      dispatch(addProductsServices(formData))
+    }
+    handleClose();
   }
 
   return (
@@ -184,12 +213,12 @@ function ProductsAndServices() {
       </div>
 
       <div className="row mt-2">
-        <div className="col-md-12" style={{ height: 400, width: "100%" }}>
+        <div className="col-md-12" style={{ height: 500, width: "100%" }}>
           <DataGrid
             rows={filteredRows}
             getRowId={(row)=>row._id}
             columns={columns}
-            pageSize={5}
+            pageSize={20}
             rowsPerPageOptions={[5]}
             checkboxSelection={false}
             disableSelectionOnClick
@@ -202,13 +231,14 @@ function ProductsAndServices() {
         onClose={handleClose}
         PaperProps={{
           component: "form",
-          onSubmit: handleAddProducts
+          onSubmit: handleAddOrEditProducts
         }}
       >
-        <DialogTitle>Add Products and Services</DialogTitle>
+        <DialogTitle>{isEditing ? "Edit Product/Service" : "Add Products and Services"}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Add the details of the product or service you want to add.
+            {isEditing? "Edit the details of the product or service you want to edit.":" Add the details of the product or service you want to add."}
+           
           </DialogContentText>
           <TextField
             autoFocus
@@ -242,21 +272,20 @@ function ProductsAndServices() {
             <div>
               <Checkbox
                 name="sslCert"
-                checked={showSSL}
-                value={formData.sslCert}
+                checked={formData.sslCert}
                 onChange={(e) =>{
                 setFormData({...formData, sslCert: e.target.checked, sslCertProvider:""});
-                setShowSSL(!showSSL)}}
+                setShowSSL(e.target.checked)}}
               />
               SSL Certificate
             </div>
             <div>
               <Checkbox
                 name="website"
-                checked={showWebsite}
-                value={formData.website}
+                checked={formData.website}
                 onChange={(e) => {setShowWebsite(!showWebsite);
-                  setFormData({...formData, website: e.target.checked, webisteHostProvider:""});
+                  setFormData({...formData, website: e.target.checked, websiteHostProvider:""});
+                  setShowWebsite(e.target.checked)
                 }}
               />
               Website
@@ -264,10 +293,11 @@ function ProductsAndServices() {
             <div>
               <Checkbox
                 name="server"
-                checked={showServer}
-                value={formData.server}
+                checked={formData.server}
+
                 onChange={(e) => {setShowServer(!showServer);
                   setFormData({...formData, server: e.target.checked, serverProvider:"", serverCapacity:""});
+                  setShowServer(e.target.checked)
                 }}
               />
               Server
@@ -275,10 +305,11 @@ function ProductsAndServices() {
             <div>
               <Checkbox
                 name="email"
-                checked={showEmail}
-                value={formData.emailServer}
+                checked={formData.emailServer}
+
                 onChange={(e) => {setShowEmail(!showEmail);
                   setFormData({...formData, emailServer: e.target.checked, emailProvider:"", numberOfUsers:0});
+                  setShowEmail(e.target.checked)
                 }}
               />
               Email Server
@@ -287,7 +318,7 @@ function ProductsAndServices() {
 
           {showSSL && (
             <>
-            <FormControl   variant="outlined"   fullWidth>
+            <FormControl   variant="outlined"   fullWidth className="mt-2">
             <InputLabel id="sslCertProvider" className="mt-2">
                 SSL Certificate Provider
               </InputLabel>
@@ -296,9 +327,10 @@ function ProductsAndServices() {
                 id="sslCertProvider"
                 label="SSL Certificate Provider"
                 variant="outlined"
+                className="mt-2"
                 fullWidth
                 value={formData.sslCertProvider}
-                onChange={(e) => setFormData({...formData, sslCertProvider: e.target.value})}
+                onChange={(e) => setFormData({...formData, sslCertProvider: e.target.value || ""})}
               >
                 <MenuItem value="godaddy">GoDaddy</MenuItem>
                 <MenuItem value="comodo">Comodo</MenuItem>
@@ -312,7 +344,7 @@ function ProductsAndServices() {
 
           {showWebsite && (
             <>
-              <FormControl   variant="outlined"   fullWidth>
+              <FormControl   variant="outlined"   fullWidth className="mt-2">
             <InputLabel id="websiteHostingProvider" className="mt-2">
                 Website Hosting Provider
               </InputLabel>
@@ -321,9 +353,10 @@ function ProductsAndServices() {
                 id="websiteHostingProvider"
                 label="Website Hosting Provider"
                 variant="outlined"
+                className="mt-2"
                 fullWidth
-                value={formData.webisteHostProvider}
-                onChange={(e) => setFormData({...formData, webisteHostProvider: e.target.value})}
+                value={formData.websiteHostProvider}
+                onChange={(e) => setFormData({...formData, websiteHostProvider: e.target.value || ""})}
               >
                 <MenuItem value="godaddy">GoDaddy</MenuItem>
                 <MenuItem value="hostinger">Hostinger</MenuItem>
@@ -344,6 +377,7 @@ function ProductsAndServices() {
                 labelId="serverProvider"
                 id="serverProvider"
                 variant="outlined"
+                className="mt-2"
                 label="Server Provider"
                 value={formData.serverProvider}
                 onChange={(e) => setFormData({...formData, serverProvider: e.target.value})}
@@ -409,7 +443,7 @@ function ProductsAndServices() {
                 variant="outlined"
                 className="mt-2"
                 value={formData.numberOfUsers}
-                onChange={(e) => setFormData({...formData, numberOfUsers: parseInt(e.target.value)})}
+                onChange={(e) => setFormData({...formData, numberOfUsers: parseInt(e.target.value) || 0})}
               />
             </>
           )}
@@ -425,7 +459,7 @@ function ProductsAndServices() {
             variant="outlined"
             className="mt-2"
             value={formData.duration}
-            onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value)})}
+            onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 0})}
           />
           <TextField
             margin="dense"
@@ -443,7 +477,7 @@ function ProductsAndServices() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit">Add Product/Service</Button>
+          <Button type="submit">{isEditing? "Save Changes" : "Add Product/Service"}</Button>
         </DialogActions>
       </Dialog>
     </>
