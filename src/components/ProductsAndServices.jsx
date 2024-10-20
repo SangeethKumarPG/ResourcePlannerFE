@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   TextField,
   Button,
@@ -21,13 +21,20 @@ import {
   DialogActions,
 } from "@mui/material";
 
+import { fetchProductsServices, addProductsServices, editProductsServices } from "../redux/productsAndServicesSlice";
+import { useDispatch, useSelector } from "react-redux";
+
 function ProductsAndServices() {
   const [open, setOpen] = useState(false);
   const [showSSL, setShowSSL] = useState(false);
   const [showWebsite, setShowWebsite] = useState(false);
   const [showServer, setShowServer] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
+  const dispatch = useDispatch();
+  const {items, status} = useSelector((state)=>state.productsAndServices);
 
+  const [filteredRows, setFilteredRows] = useState(items);
+  
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -62,17 +69,36 @@ function ProductsAndServices() {
       price: "$300",
     },
   ];
+  useEffect(()=>{
+    dispatch(fetchProductsServices());
 
+  }, [dispatch])
+  useEffect(()=>{
+    setFilteredRows(items);
+  },[items])
   const [searchTerm, setSearchTerm] = useState("");
-  const [rows, setRows] = useState(initialRows);
+  const [formData, setFormData] = useState({
+    serviceName : "",
+    domain:"",
+    sslCert : false,
+    website: false,
+    server:false,
+    emailServer: false,
+    duration:"",
+    price:""
+  })
 
   const columns = [
     { field: "serviceName", headerName: "Service Name", minWidth: 150 },
     { field: "domain", headerName: "Domain", minWidth: 150 },
     { field: "server", headerName: "Server", minWidth: 150 },
+    { field: "serverProvider", headerName : "Server Provider", minWidth: 150 },
     { field: "sslCert", headerName: "SSL Certificate", minWidth: 150 },
+    { field: "sslCertProvider", headerName : "SSL Certificate Provider", minWidth: 150 },
     { field: "website", headerName: "Website", minWidth: 200 },
-    { field: "serviceProvider", headerName: "Service Provider", minWidth: 150 },
+    { field: "websiteHostingProvider", headerName : "Website Hosting Provider", minWidth: 150 },
+    { field : "Email", headerName: "Email", minWidth: 150 },
+    { field: "emailServiceProvider", headerName: "Email Service Provider", minWidth: 150 },
     { field: "numberOfUsers", headerName: "Number of Users", minWidth: 150 },
     { field: "duration", headerName: "Duration", minWidth: 150 },
     { field: "price", headerName: "Price", minWidth: 150 },
@@ -110,14 +136,21 @@ function ProductsAndServices() {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filteredRows = initialRows.filter((row) => {
+    const filteredRows = items.filter((row) => {
       return Object.values(row).some((field) =>
         String(field).toLowerCase().includes(value)
       );
     });
 
-    setRows(filteredRows);
+    setFilteredRows(filteredRows);
   };
+
+  const handleAddProducts = (e)=>{
+    e.preventDefault();
+    console.log(formData);
+    dispatch(addProductsServices(formData));   
+    handleClose()
+  }
 
   return (
     <>
@@ -153,7 +186,8 @@ function ProductsAndServices() {
       <div className="row mt-2">
         <div className="col-md-12" style={{ height: 400, width: "100%" }}>
           <DataGrid
-            rows={rows}
+            rows={filteredRows}
+            getRowId={(row)=>row._id}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}
@@ -168,13 +202,7 @@ function ProductsAndServices() {
         onClose={handleClose}
         PaperProps={{
           component: "form",
-          onSubmit: (event) => {
-            event.preventDefault();
-            const formData = new FormData(event.currentTarget);
-            const formJson = Object.fromEntries(formData.entries());
-            console.log(formJson);
-            handleClose();
-          },
+          onSubmit: handleAddProducts
         }}
       >
         <DialogTitle>Add Products and Services</DialogTitle>
@@ -193,6 +221,8 @@ function ProductsAndServices() {
             fullWidth
             variant="outlined"
             className="mt-2"
+            value={formData.serviceName}
+            onChange={(e)=> setFormData({...formData, serviceName:e.target.value})}
           />
           <TextField
             required
@@ -201,9 +231,11 @@ function ProductsAndServices() {
             fullWidth
             id="domain"
             name="domain"
-            label="Domain"
+            label="Domain Extension"
             type="text"
             className="mt-2"
+            value={formData.domain}
+            onChange={(e)=> setFormData({...formData, domain:e.target.value})}
           />
 
           <div className="d-flex flex-column flex-md-row mt-2">
@@ -211,7 +243,10 @@ function ProductsAndServices() {
               <Checkbox
                 name="sslCert"
                 checked={showSSL}
-                onChange={() => setShowSSL(!showSSL)}
+                value={formData.sslCert}
+                onChange={(e) =>{
+                setFormData({...formData, sslCert: e.target.checked, sslCertProvider:""});
+                setShowSSL(!showSSL)}}
               />
               SSL Certificate
             </div>
@@ -219,7 +254,10 @@ function ProductsAndServices() {
               <Checkbox
                 name="website"
                 checked={showWebsite}
-                onChange={() => setShowWebsite(!showWebsite)}
+                value={formData.website}
+                onChange={(e) => {setShowWebsite(!showWebsite);
+                  setFormData({...formData, website: e.target.checked, webisteHostProvider:""});
+                }}
               />
               Website
             </div>
@@ -227,7 +265,10 @@ function ProductsAndServices() {
               <Checkbox
                 name="server"
                 checked={showServer}
-                onChange={() => setShowServer(!showServer)}
+                value={formData.server}
+                onChange={(e) => {setShowServer(!showServer);
+                  setFormData({...formData, server: e.target.checked, serverProvider:"", serverCapacity:""});
+                }}
               />
               Server
             </div>
@@ -235,7 +276,10 @@ function ProductsAndServices() {
               <Checkbox
                 name="email"
                 checked={showEmail}
-                onChange={() => setShowEmail(!showEmail)}
+                value={formData.emailServer}
+                onChange={(e) => {setShowEmail(!showEmail);
+                  setFormData({...formData, emailServer: e.target.checked, emailProvider:"", numberOfUsers:0});
+                }}
               />
               Email Server
             </div>
@@ -253,6 +297,8 @@ function ProductsAndServices() {
                 label="SSL Certificate Provider"
                 variant="outlined"
                 fullWidth
+                value={formData.sslCertProvider}
+                onChange={(e) => setFormData({...formData, sslCertProvider: e.target.value})}
               >
                 <MenuItem value="godaddy">GoDaddy</MenuItem>
                 <MenuItem value="comodo">Comodo</MenuItem>
@@ -266,14 +312,25 @@ function ProductsAndServices() {
 
           {showWebsite && (
             <>
-              <TextField
+              <FormControl   variant="outlined"   fullWidth>
+            <InputLabel id="websiteHostingProvider" className="mt-2">
+                Website Hosting Provider
+              </InputLabel>
+              <Select
+                labelId="websiteHostingProvider"
+                id="websiteHostingProvider"
+                label="Website Hosting Provider"
                 variant="outlined"
                 fullWidth
-                id="website"
-                name="website"
-                label="Website URL"
-                className="mt-2"
-              />
+                value={formData.webisteHostProvider}
+                onChange={(e) => setFormData({...formData, webisteHostProvider: e.target.value})}
+              >
+                <MenuItem value="godaddy">GoDaddy</MenuItem>
+                <MenuItem value="hostinger">Hostinger</MenuItem>
+                <MenuItem value="aws">AWS</MenuItem>
+                <MenuItem value="cloudflare">Cloud Flare</MenuItem>
+              </Select>
+            </FormControl>
             </>
           )}
 
@@ -288,6 +345,8 @@ function ProductsAndServices() {
                 id="serverProvider"
                 variant="outlined"
                 label="Server Provider"
+                value={formData.serverProvider}
+                onChange={(e) => setFormData({...formData, serverProvider: e.target.value})}
                 fullWidth
               >
                 <MenuItem value="aws">AWS</MenuItem>
@@ -310,6 +369,8 @@ function ProductsAndServices() {
                 label="Server Capacity/Specifications"
                 type="text"
                 className="mt-2"
+                value={formData.serverCapacity}
+                onChange={(e) => setFormData({...formData, serverCapacity: e.target.value})}
               />
             </>
           )}
@@ -327,6 +388,8 @@ function ProductsAndServices() {
                 name="emailServerProvider"
                 fullWidth
                 className="mt-2"
+                value={formData.emailProvider}
+                onChange={(e) => setFormData({...formData, emailProvider: e.target.value})}
               >
                 <MenuItem value="microsoft">Microsoft</MenuItem>
                 <MenuItem value="google">Google</MenuItem>
@@ -345,6 +408,8 @@ function ProductsAndServices() {
                 fullWidth
                 variant="outlined"
                 className="mt-2"
+                value={formData.numberOfUsers}
+                onChange={(e) => setFormData({...formData, numberOfUsers: parseInt(e.target.value)})}
               />
             </>
           )}
@@ -359,6 +424,8 @@ function ProductsAndServices() {
             fullWidth
             variant="outlined"
             className="mt-2"
+            value={formData.duration}
+            onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value)})}
           />
           <TextField
             margin="dense"
@@ -370,6 +437,8 @@ function ProductsAndServices() {
             fullWidth
             variant="outlined"
             className="mt-2"
+            value={formData.price}
+            onChange={(e) => setFormData({...formData, price: parseInt(e.target.value)})}
           />
         </DialogContent>
         <DialogActions>
