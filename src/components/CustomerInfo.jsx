@@ -1,15 +1,50 @@
-import React, { useState } from "react";
-import { Button, Select, MenuItem, TextField, Dialog, DialogTitle, DialogContentText, DialogContent, FormControl, InputLabel } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+  Button,
+  Select,
+  MenuItem,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContentText,
+  DialogContent,
+  FormControl,
+  InputLabel,
+  Autocomplete,
+} from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { DataGrid } from "@mui/x-data-grid";
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import { MuiTelInput } from "mui-tel-input";
+import { useDispatch, useSelector } from "react-redux";
+import { IconButton } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { addCustomer, fetchCustomers, editCustomer, deleteCustomer } from "../redux/customerSlice";
+import { fetchProductsServices } from "../redux/productsAndServicesSlice";
 
 function CustomerInfo({
   selectedCustomer,
   setSelectedCustomer,
   setSelectedView,
 }) {
+  const dispatch = useDispatch();
+  const [refresh, setRefresh] = useState(false);
+  const { customers, status } = useSelector((state) => state.customers);
+  const { items } = useSelector((state) => state.productsAndServices);
+  useEffect(() => {
+    dispatch(fetchProductsServices());
+  }, []);
+  // console.log("Items:",items)
+  useEffect(() => {
+    if (status === "idle" || refresh) {
+      dispatch(fetchCustomers());
+      setRefresh(false);
+    }
+  }, [dispatch, status, refresh]);
+  // console.log("Customers:", customers);
+  const [selectedPlan, setSelectedPlan] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [services, setServices] = useState({
     1: ["Web Hosting", "Email", "SSL Certificate"],
@@ -29,81 +64,143 @@ function CustomerInfo({
     }));
   };
 
+  const handleEdit = (customer) => {
+    console.log(customer);
+    setAddCustomerDialog(true);
+    setIsEditing(true);
+    setFormData({
+      _id:customer._id,
+      username: customer.username,
+      address: customer.address,
+      phone: customer.phone,
+      email: customer.email,
+      domainName: customer.domainName,
+      plan: customer.plan,
+      planName: items.find(item => item._id === customer.plan)?.serviceName || '',
+    });
+  };
+
+  const handleDelete = (customer) => {
+    // console.log(customer);
+    dispatch(deleteCustomer(customer._id)).then(() => setRefresh(true));
+  };
+
   const columns = [
     { field: "username", headerName: "Username", width: 150 },
     { field: "address", headerName: "Address", width: 250 },
     { field: "phone", headerName: "Phone Number", width: 150 },
     { field: "email", headerName: "Email Address", width: 250 },
-    { field: "isActive", headerName: "Is Active", width: 100, type: "boolean" },
+    // { field: "isActive", headerName: "Is Active", width: 100, type: "boolean" },
+    { field: "planName", headerName: "Plan Name", width: 150 },
+    // { field: "plan", headerName: "Plan ID", width: 150 },
     { field: "domainName", headerName: "Domain Name", width: 250 },
     {
-      field: "services",
-      headerName: "Selected Services",
-      width: 250,
+      field: "emailServer",
+      headerName: "Email",
+      width: 150,
+      renderCell: (params) => {
+        const emailServerStatus = items.find(
+          (item) => item._id === params.row.plan
+        )?.emailServer;
+        return emailServerStatus ? <div>✅</div> : <div>❌</div>;
+      },
+    },
+    {
+      field:"sslCert",
+      headerName:"SSL Cert",
+      width:150,
+      renderCell:(params)=>{
+        const sslCertStatus = items.find((item)=> item._id === params.row.plan)?.sslCert;
+        return sslCertStatus ? <div>✅</div> : <div>❌</div>;
+      }
+    },
+    {
+      field:"serverStatus",
+      width:150,
+      headerName:"Server Status",
+      renderCell:(params)=>{
+        const serverStatus = items.find((item)=> item._id === params.row.plan)?.serverStatus;
+        return serverStatus ? <div>✅</div> : <div>❌</div>;
+      }
+    },
+    {
+      field:"websiteStatus",
+      width:150,
+      headerName:"Website Status",
+      renderCell:(params)=>{
+        const websiteStatus = items.find((item)=> item._id === params.row.plan)?.website;
+        return websiteStatus ? <div>✅</div> : <div>❌</div>;
+      }
+    },
+
+    {
+      field: "actions",
+      headerName: "Actions",
+      minWidth: 150,
       renderCell: (params) => (
-        <Select
-          multiple
-          value={services[params.row.id] || []}
-          onChange={(event) => handleServiceChange(params.row.id, event)}
-          renderValue={(selected) => selected.join(", ")}
-          fullWidth
-        >
-          <MenuItem value="Web Hosting">Web Hosting</MenuItem>
-          <MenuItem value="Email">Email</MenuItem>
-          <MenuItem value="SSL Certificate">SSL Certificate</MenuItem>
-          <MenuItem value="Backup">Backup</MenuItem>
-          <MenuItem value="Domain Registration">Domain Registration</MenuItem>
-        </Select>
+        <>
+          <IconButton color="primary" onClick={() => handleEdit(params.row)}>
+            <EditIcon />
+          </IconButton>
+          <IconButton
+            color="secondary"
+            onClick={() => handleDelete(params.row)}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </>
       ),
+      sortable: false,
+      filterable: false,
     },
   ];
 
-  const rows = [
-    {
-      id: 1,
-      username: "JohnDoe",
-      address: "123 Street, City",
-      phone: "9876543210",
-      email: "john@example.com",
-      isActive: true,
-      domainName: "www.test.com",
-    },
-    {
-      id: 2,
-      username: "JaneDoe",
-      address: "456 Avenue, City",
-      phone: "8765432109",
-      email: "jane@example.com",
-      isActive: false,
-      domainName: "www.test2.com",
-    },
-    {
-      id: 3,
-      username: "MikeSmith",
-      address: "789 Road, City",
-      phone: "7654321098",
-      email: "mike@example.com",
-      isActive: true,
-      domainName: "www.test3.com",
-    },
-  ];
 
-  const filteredRows = rows.filter((row) =>
+  const filteredRows = customers.filter((row) =>
     Object.values(row).some((value) =>
       value.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
   const [addCustomerDialog, setAddCustomerDialog] = useState(false);
-  const openAddCustomerDialog=()=>{
+  const openAddCustomerDialog = () => {
+    setIsEditing(false);
     setAddCustomerDialog(true);
-  }
+    setFormData({
+      username: "",
+      address: "",
+      phone: "",
+      email: "",
+      domainName: "",
+      plan: "",
+    });
+  };
+  const handleAddorEdit = (event) => {
+    event.preventDefault();
+    if (isEditing) {
+      console.log(formData);
+      dispatch(editCustomer(formData)).then(() => setRefresh(true));
+    } else {
+      // console.log(formData);
+      dispatch(addCustomer(formData)).then(() => setRefresh(true));
+    }
+    closeAddCustomerDialog();
+  };
 
   const closeAddCustomerDialog = () => {
+    setIsEditing(false);
+    setPhoneNumber("");
     setAddCustomerDialog(false);
-  }
+  };
 
   const [phoneNumber, setPhoneNumber] = useState("");
-
+  const [formData, setFormData] = useState({
+    username: "",
+    address: "",
+    phone: "",
+    email: "",
+    domainName: "",
+    plan: "",
+  });
   return (
     <>
       <h4>Customer Details</h4>
@@ -146,11 +243,12 @@ function CustomerInfo({
           </div>
           <div className="row mt-2">
             <div className="col-md-12">
-              <div style={{ height: 400, width: "100%" }}>
+              <div style={{ height: 500, width: "100%" }}>
                 <DataGrid
                   rows={filteredRows}
                   columns={columns}
-                  pageSize={5}
+                  getRowId={(row) => row._id}
+                  pageSize={6}
                   rowsPerPageOptions={[5]}
                 />
               </div>
@@ -161,74 +259,119 @@ function CustomerInfo({
             onClose={closeAddCustomerDialog}
             aria-labelledby="add-customer-dialog-title"
             aria-describedby="add-customer-dialog-description"
-            >
-              <DialogTitle>Add new customer</DialogTitle>
-              <DialogContent>
-                <DialogContentText>Enter the details of the new customer:</DialogContentText>
-                <TextField
-                  label="user name"
-                  variant="outlined"
-                  fullWidth
-                  className="mt-2"
-                />
-                <TextField
-                  label="address"
-                  variant="outlined"
-                  fullWidth
-                  className="mt-2"
-                />
-                <MuiTelInput
-                  label="phone number"
-                  variant="outlined"
-                  fullWidth
-                  value={phoneNumber}
-                  onChange={(value) => setPhoneNumber(value)}
-                  className="mt-2"/>
-                <TextField
-                  label="email"
-                  variant="outlined"
-                  className="mt-2"
-                  fullWidth/>
-                <TextField
-                  label="domain name"
-                  variant="outlined"
-                  fullWidth
-                  className="mt-2"/>
-                <FormControl label="plan" fullWidth variant="outlined" className="mt-2">
-                  <InputLabel id="plan-label">Select Plan</InputLabel>
-                  <Select
-                    labelId="plan-label"
-                    id="plan-select"
-                    fullWidth
-                    className="mt-2"
-                    label="plan">
-                      <MenuItem value="plana">Plan A</MenuItem>
-                      <MenuItem value="planb">Plan B</MenuItem>
-                      <MenuItem value="planc">Plan C</MenuItem>
-                    </Select>
+            PaperProps={{
+              component: "form",
+              onSubmit: handleAddorEdit,
+            }}
+          >
+            <DialogTitle>{isEditing ? "Edit customer details":"Add new customer"}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                {isEditing ? "Edit the details of the customer" : "Enter the details of the new customer"}
+              </DialogContentText>
+              <TextField
+                label="user name"
+                variant="outlined"
+                fullWidth
+                value={formData.username}
+                className="mt-2"
+                onChange={(e) => {
+                  e.preventDefault();
+                  setFormData({ ...formData, username: e.target.value });
+                }}
+              />
+              <TextField
+                label="address"
+                variant="outlined"
+                value={formData.address}
+                fullWidth
+                className="mt-2"
+                onChange={(e) => {
+                  e.preventDefault();
+                  setFormData({ ...formData, address: e.target.value });
+                }}
+              />
+              <MuiTelInput
+                label="phone number"
+                variant="outlined"
+                fullWidth
+                value={phoneNumber||formData.phone}
+                onChange={(newValue) => {
+                  setPhoneNumber(newValue);
+                  setFormData({ ...formData, phone: newValue });
+                }}
+                className="mt-2"
+              />
+              <TextField
+                label="email"
+                variant="outlined"
+                className="mt-2"
+                value={formData.email}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setFormData({ ...formData, email: e.target.value });
+                }}
+                fullWidth
+              />
+              <TextField
+                label="domain name"
+                variant="outlined"
+                fullWidth
+                value={formData.domainName}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setFormData({ ...formData, domainName: e.target.value });
+                }}
+                className="mt-2"
+              />
+              <Autocomplete
+                id="plan-select"
+                value={items.find(item => item._id === formData.plan) || null}
+                options={items || ["No plans Available"]}
+                getOptionLabel={(option) => option.serviceName || ""}
+                className="mt-2"
+                onChange={(event, newValue) => {
+                  event.preventDefault();
+                  setSelectedPlan(newValue);
+                  setFormData({
+                    ...formData,
+                    plan: newValue._id,
+                    planName: newValue.serviceName,
+                  });
+                  // console.log(formData)
+                }}
+                variant="outlined"
+                renderInput={(params) => <TextField {...params} label="Plan" />}
+              />
 
-                </FormControl>
-                 <div className="d-flex align-items-center justify-content-between mt-3">
-                  <Button variant="outlined" onClick={closeAddCustomerDialog}
+              <div className="d-flex align-items-center justify-content-between mt-3">
+                <Button
+                  variant="outlined"
+                  onClick={closeAddCustomerDialog}
                   sx={{
-                    '&:hover':{
-                      backgroundColor: 'red',
-                      color: 'white'
-                    }
+                    "&:hover": {
+                      backgroundColor: "red",
+                      color: "white",
+                    },
                   }}
-                  >close</Button>
-                  <Button variant="outlined" onClick={closeAddCustomerDialog}
+                >
+                  close
+                </Button>
+                <Button
+                  variant="outlined"
+                  type="submit"
                   sx={{
-                    '&:hover':{
-                      backgroundColor: 'green',
-                      color: 'white'
-                    }
+                    "&:hover": {
+                      backgroundColor: "green",
+                      color: "white",
+                    },
                   }}
-                  >add</Button>
-                 </div>
-                  
-              </DialogContent>
-            </Dialog>
+                >
+                  {isEditing? "Save Changes":"Add"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       ) : (
         <div className="row">
