@@ -21,7 +21,7 @@ import { IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { addCustomer, fetchCustomers, editCustomer, deleteCustomer } from "../redux/customerSlice";
-import { fetchProductsServices } from "../redux/productsAndServicesSlice";
+
 
 function CustomerInfo({
   selectedCustomer,
@@ -31,10 +31,6 @@ function CustomerInfo({
   const dispatch = useDispatch();
   const [refresh, setRefresh] = useState(false);
   const { customers, status } = useSelector((state) => state.customers);
-  const { items } = useSelector((state) => state.productsAndServices);
-  useEffect(() => {
-    dispatch(fetchProductsServices());
-  }, []);
   // console.log("Items:",items)
   useEffect(() => {
     if (status === "idle" || refresh) {
@@ -46,23 +42,12 @@ function CustomerInfo({
   const [selectedPlan, setSelectedPlan] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [services, setServices] = useState({
-    1: ["Web Hosting", "Email", "SSL Certificate"],
-    2: ["Web Hosting", "Backup"],
-    3: ["Domain Registration", "SSL Certificate"],
-  });
 
   const handleBackNavigation = () => {
     setSelectedCustomer(null);
     setSelectedView(1);
   };
 
-  const handleServiceChange = (customerId, event) => {
-    setServices((prevServices) => ({
-      ...prevServices,
-      [customerId]: event.target.value,
-    }));
-  };
 
   const handleEdit = (customer) => {
     console.log(customer);
@@ -74,9 +59,6 @@ function CustomerInfo({
       address: customer.address,
       phone: customer.phone,
       email: customer.email,
-      domainName: customer.domainName,
-      plan: customer.plan,
-      planName: items.find(item => item._id === customer.plan)?.serviceName || '',
     });
   };
 
@@ -89,54 +71,11 @@ function CustomerInfo({
     { field: "username", headerName: "Username", width: 150 },
     { field: "address", headerName: "Address", width: 250 },
     { field: "phone", headerName: "Phone Number", width: 150 },
-    { field: "email", headerName: "Email Address", width: 250 },
-    // { field: "isActive", headerName: "Is Active", width: 100, type: "boolean" },
-    { field: "planName", headerName: "Plan Name", width: 150 },
-    // { field: "plan", headerName: "Plan ID", width: 150 },
-    { field: "domainName", headerName: "Domain Name", width: 250 },
-    {
-      field: "emailServer",
-      headerName: "Email",
-      width: 150,
-      renderCell: (params) => {
-        const emailServerStatus = items.find(
-          (item) => item._id === params.row.plan
-        )?.emailServer;
-        return emailServerStatus ? <div>✅</div> : <div>❌</div>;
-      },
-    },
-    {
-      field:"sslCert",
-      headerName:"SSL Cert",
-      width:150,
-      renderCell:(params)=>{
-        const sslCertStatus = items.find((item)=> item._id === params.row.plan)?.sslCert;
-        return sslCertStatus ? <div>✅</div> : <div>❌</div>;
-      }
-    },
-    {
-      field:"serverStatus",
-      width:150,
-      headerName:"Server Status",
-      renderCell:(params)=>{
-        const serverStatus = items.find((item)=> item._id === params.row.plan)?.serverStatus;
-        return serverStatus ? <div>✅</div> : <div>❌</div>;
-      }
-    },
-    {
-      field:"websiteStatus",
-      width:150,
-      headerName:"Website Status",
-      renderCell:(params)=>{
-        const websiteStatus = items.find((item)=> item._id === params.row.plan)?.website;
-        return websiteStatus ? <div>✅</div> : <div>❌</div>;
-      }
-    },
-
+    { field: "email", headerName: "Email Address", width: 200 },
     {
       field: "actions",
       headerName: "Actions",
-      minWidth: 150,
+      minWidth: 200,
       renderCell: (params) => (
         <>
           <IconButton color="primary" onClick={() => handleEdit(params.row)}>
@@ -170,8 +109,6 @@ function CustomerInfo({
       address: "",
       phone: "",
       email: "",
-      domainName: "",
-      plan: "",
     });
   };
   const handleAddorEdit = (event) => {
@@ -198,8 +135,6 @@ function CustomerInfo({
     address: "",
     phone: "",
     email: "",
-    domainName: "",
-    plan: "",
   });
   return (
     <>
@@ -313,36 +248,7 @@ function CustomerInfo({
                 }}
                 fullWidth
               />
-              <TextField
-                label="domain name"
-                variant="outlined"
-                fullWidth
-                value={formData.domainName}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setFormData({ ...formData, domainName: e.target.value });
-                }}
-                className="mt-2"
-              />
-              <Autocomplete
-                id="plan-select"
-                value={items.find(item => item._id === formData.plan) || null}
-                options={items || ["No plans Available"]}
-                getOptionLabel={(option) => option.serviceName || ""}
-                className="mt-2"
-                onChange={(event, newValue) => {
-                  event.preventDefault();
-                  setSelectedPlan(newValue);
-                  setFormData({
-                    ...formData,
-                    plan: newValue._id,
-                    planName: newValue.serviceName,
-                  });
-                  // console.log(formData)
-                }}
-                variant="outlined"
-                renderInput={(params) => <TextField {...params} label="Plan" />}
-              />
+              
 
               <div className="d-flex align-items-center justify-content-between mt-3">
                 <Button
