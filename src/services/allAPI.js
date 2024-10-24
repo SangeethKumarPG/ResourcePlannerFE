@@ -45,3 +45,14 @@ export const deleteCustomerAPI = async(id, header)=>{
     return await commonAPI("DELETE",`${BASE_URL}/customers/${id}`,{},header)
 }
 
+//add order
+export const addOrderAPI = async(orderDetail, header)=>{
+    return await commonAPI("POST",`${BASE_URL}/orders`,orderDetail,header)
+}   
+
+// get all orders
+export const fetchOrdersAPI = async(header)=>{
+    return await commonAPI("GET",`${BASE_URL}/orders`,{},header)
+}
+
+
