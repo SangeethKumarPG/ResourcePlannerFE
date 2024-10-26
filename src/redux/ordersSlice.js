@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { addOrderAPI, fetchOrdersAPI } from "../services/allAPI";
+import { addOrderAPI, fetchOrdersAPI, updateOrderAPI, deleteOrderAPI }  from "../services/allAPI";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 
@@ -47,6 +47,45 @@ export const fetchOrders = createAsyncThunk('orders/fetchOrders', async (_, {rej
     }
 })
 
+export const renewOrder = createAsyncThunk('orders/renewOrder', async (order, {rejectWithValue})=>{
+    try{
+        if(sessionStorage.getItem('userData')){
+            const token = JSON.parse(sessionStorage.getItem('userData')).token;
+            const header = {
+                'Content-Type':'application/json',
+                'Authorization':`Bearer ${token}`
+            }
+            const {_id} = order;
+            const response = await updateOrderAPI(order, header, _id);
+            return response.data;
+        }else{
+            return rejectWithValue("unauthorized");
+        }
+    }catch(error){
+        console.log("Error in renewOrder thunk : ",error)
+        return rejectWithValue(error);
+    }
+})
+
+export const deleteOrder = createAsyncThunk('orders/deleteOrder', async (id, {rejectWithValue})=>{
+    try{
+        if(sessionStorage.getItem('userData')){
+            const token = JSON.parse(sessionStorage.getItem('userData')).token;
+            const header = {
+                'Content-Type':'application/json',
+                'Authorization':`Bearer ${token}`
+            }
+            const response = await deleteOrderAPI(id, header);
+            return response.data;
+        }else{
+            return rejectWithValue("unauthorized");
+        }
+    }catch(error){
+        console.log("Error in deleteOrder thunk : ",error)
+        return rejectWithValue(error);
+    }
+})
+
 const orderSlice = createSlice({
     name : 'orders',
     initialState : {
@@ -77,6 +116,35 @@ const orderSlice = createSlice({
             state.orders = action.payload;
         })
         .addCase(fetchOrders.rejected, (state, action)=>{
+            state.status ='rejected';
+            state.error = action.payload;
+            toast.error(action.payload, {position:"top-center"});
+        })
+        .addCase(renewOrder.pending, state=>{
+            state.status = 'loading';
+        })
+        .addCase(renewOrder.fulfilled, (state, action)=>{
+            state.status = 'fulfilled';
+            const index = state.orders.findIndex(order=>order._id === action.payload._id);
+            state.orders[index] = action.payload;
+            toast.success("Order renewed successfully", {position:"top-center"});
+        })
+        .addCase(renewOrder.rejected, (state, action)=>{
+            state.status ='rejected';
+            state.error = action.payload;
+            toast.error(action.payload, {position:"top-center"});
+        })
+        .addCase(deleteOrder.pending, state=>{
+            state.status = 'loading';
+        })
+        .addCase(deleteOrder.fulfilled, (state, action)=>{
+            state.status = 'fulfilled';
+            console.log("Action payload in deleteOrder.fulfilled : ",action.payload)
+            const index = state.orders.findIndex(order=>order._id === action.payload._id);
+            state.orders.splice(index, 1);
+            toast.success("Order deleted successfully", {position:"top-center"});
+        })
+        .addCase(deleteOrder.rejected, (state, action)=>{
             state.status ='rejected';
             state.error = action.payload;
             toast.error(action.payload, {position:"top-center"});

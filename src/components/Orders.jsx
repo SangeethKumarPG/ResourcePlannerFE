@@ -18,6 +18,7 @@ import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Button,
   Dialog,
@@ -36,9 +37,9 @@ import { fetchCustomers } from "../redux/customerSlice";
 import { fetchProductsServices } from "../redux/productsAndServicesSlice";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
-import { addOrder, fetchOrders } from "../redux/ordersSlice";
+import { addOrder, fetchOrders, renewOrder, deleteOrder } from "../redux/ordersSlice";
 import dayjs from "dayjs";
-import './Orders.css'
+import "./Orders.css";
 
 function Orders({ setSelectedCustomer, setSelectedView }) {
   const dispatch = useDispatch();
@@ -55,11 +56,9 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     }
   }, [status, refresh, dispatch]);
 
-  const currentDate = new Date();
-  const date = currentDate.getDate();
-  const month = currentDate.getMonth() + 1;
-  const year = currentDate.getFullYear();
-  const dateString = date + "/" + month + "/" + year;
+  const [isEditing, setIsEditing] = useState(false);
+  const [isRenew, setIsRenew] = useState(false);
+  const [renewState, setRenewState] = useState(false);
   const [formData, setFormData] = useState({
     domainName: "",
     userName: "",
@@ -71,11 +70,27 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     thirdPartyDomain: false,
     startDate: dayjs(),
   });
-  const [isEditing, setIsEditing] = useState(false);
+ 
   const handleAddOrEditOrder = (e) => {
     e.preventDefault();
     if (isEditing) {
       //Editing logic
+      // console.log("Editing order : ", formData);
+      dispatch(renewOrder(formData)).then(() => setRefresh(true));
+      setIsEditing(false);
+      setIsRenew(false);
+      setRenewState(false);
+      setFormData({
+        domainName: "",
+        userName: "",
+        userId: "",
+        plan: "",
+        planName: "",
+        price: "",
+        duration: "",
+        thirdPartyDomain: false,
+        startDate: dayjs(),
+      });
     } else {
       //Add logic
       // console.log("Submitting form data : ", formData);
@@ -83,6 +98,10 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     }
     handleCloseAddOrderDialog();
   };
+
+  const handleDelete=(order)=>{
+    dispatch(deleteOrder(order._id)).then(() => setRefresh(true));
+  }
 
   // console.log("Customers : ", customers);
   // console.log("Form data : ",formData);
@@ -115,12 +134,27 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
   };
 
   const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
+  const handleOpen = (user) => {
+    const userDetails = customers.filter((customer) => customer._id === user.userId)
+    setCurrentUser(userDetails[0])
+    setOpen(true);
+  }
+  const handleClose = () => {
+    setCurrentUser(null);
+    setOpen(false);
+  }
+  const [currentUser, setCurrentUser]= useState(null);
   const [openDialler, setOpenDialler] = useState(false);
-  const handleOpenDialler = () => setOpenDialler(true);
-  const handleCloseDialler = () => setOpenDialler(false);
+  const handleOpenDialler = (order) => {
+    const user = customers.filter((customer) => customer._id === order.userId)
+    setCurrentUser(user[0])
+    // console.log("Current user : ", user);
+    setOpenDialler(true);
+  }
+  const handleCloseDialler = () =>{
+    setCurrentUser(null);
+    setOpenDialler(false);
+  } 
 
   const handleVisitProfile = (customer) => {
     setSelectedCustomer(customer);
@@ -166,41 +200,67 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
       headerName: "User Name",
       width: 200,
       renderCell: (params) => (
-        <a href="#" onClick={handleOpen}>
+        <a href="#" onClick={()=> handleOpen(params.row)}>
           {params.value}
         </a>
       ),
     },
-    { field: "startDate", headerName: "Start Date", width: 150,
-      renderCell :(params)=>{
-       const date = dayjs(params.value)
-       if(date.isValid()){
-        return date.format('DD/MM/YYYY');
-       }else{
-        return "Invalid date";
-       }
-      }
-     },
-    { field: "expiryDate", headerName: "Expiry", width: 150,
-      renderCell : (params)=>{
+    {
+      field: "startDate",
+      headerName: "Start Date",
+      width: 150,
+      renderCell: (params) => {
         const date = dayjs(params.value);
-        if(date.isValid()){
-          return date.format('DD/MM/YYYY');
-        }else{
+        if (date.isValid()) {
+          return date.format("DD/MM/YYYY");
+        } else {
           return "Invalid date";
         }
-      }
-
-     },
+      },
+    },
+    {
+      field: "expiryDate",
+      headerName: "Expiry",
+      width: 150,
+      renderCell: (params) => {
+        const date = dayjs(params.value);
+        if (date.isValid()) {
+          return date.format("DD/MM/YYYY");
+        } else {
+          return "Invalid date";
+        }
+      },
+    },
+    {
+      field:"paymentStatus",
+      headerName: "Payment Status",
+      width: 150
+    },
+    {
+      field:"paymentDate",
+      headerName: "Payment Date",
+      width: 150,
+      renderCell: (params) => {
+        if(!params.value){
+          return "Not Paid";
+        }
+        const date = dayjs(params.value);
+        if (date.isValid()) {
+          return date.format("DD/MM/YYYY");
+        } else {
+          return "Invalid date";
+        }
+      },
+    },
     {
       field: "actions",
       headerName: "Actions",
       width: 200,
       renderCell: (params) => (
         <div style={{ display: "flex", alignItems: "center" }}>
-          <MoreHorizIcon />
-          <AutorenewIcon />
-          <LocalPhoneIcon onClick={handleOpenDialler} />
+          <DeleteIcon onClick={()=>handleDelete(params.row)} />
+          <AutorenewIcon onClick={() => handleRenew(params.row)} />
+          <LocalPhoneIcon onClick={()=>handleOpenDialler(params.row)} />
         </div>
       ),
     },
@@ -211,7 +271,52 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     setAddOrderDialog(true);
   };
 
+
+  const handleRenew = (order) => {
+    setIsEditing(true);
+    setAddOrderDialog(true);
+    const date = dayjs(order.expiryDate);
+    if (date.isValid()) {
+      const differrence_in_days = date.diff(dayjs(), "days");
+      if (differrence_in_days < 7) {
+        setIsRenew(true);
+        setFormData({
+          _id: order._id,
+          domainName: order.domainName,
+          userName: order.userName,
+          userId: order.userId,
+          plan: order.plan,
+          planName: order.planName,
+          price: order.price,
+          duration: order.duration,
+          thirdPartyDomain: order.thirdPartyDomain,
+          startDate: dayjs(order.startDate),
+          expiryDate: dayjs(order.expiryDate),
+        });
+      }else{
+        setFormData({
+          _id : order._id,
+          domainName: order.domainName,
+          userName: order.userName,
+          userId: order.userId,
+          plan: order.plan,
+          planName: order.planName,
+          price: order.price,
+          duration: order.duration,
+          thirdPartyDomain: order.thirdPartyDomain,
+          startDate: dayjs(order.startDate),
+          expiryDate: dayjs(order.expiryDate),
+        });
+      }
+    }
+  };
+
   const handleCloseAddOrderDialog = () => {
+    if(isEditing){
+      setIsEditing(false);
+      setIsRenew(false);
+      setRenewState(false);
+    }
     setAddOrderDialog(false);
     setFormData({
       domainName: "",
@@ -226,35 +331,8 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     });
   };
 
-  const [selectedPlan, setSeletedPlan] = useState(null);
 
-  const [selectedUser, setSelectedUser] = useState(null);
-  const usersList = [
-    {
-      username: "User Name1",
-      address: "123, ABC, PQR, IN",
-      email: "example@user.com",
-      phone: "+91-9876543210",
-    },
-    {
-      username: "User Name2",
-      address: "456, XYZ, DEF, US",
-      email: "example@user.com",
-      phone: "+91-9876543210",
-    },
-    {
-      username: "User Name3",
-      address: "789, PQR, DEF, UK",
-      email: "example@user.com",
-      phone: "+91-9876543210",
-    },
-    {
-      username: "User Name4",
-      address: "101, ABC, XYZ, AU",
-      email: "example@user.com",
-      phone: "+91-9876543210",
-    },
-  ];
+
 
   return (
     <>
@@ -300,21 +378,19 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
           getRowId={(row) => row._id}
           columns={columns}
           pageSize={5}
-          getRowClassName={(params)=>{
+          getRowClassName={(params) => {
             const date = dayjs(params.row.expiryDate);
-            if(date.isValid()){
-              const differrence_in_days = date.diff(dayjs(), 'days');
-              if(differrence_in_days < 0){
-                return 'expired-row'
-              }else if(differrence_in_days > 0 && differrence_in_days <= 3){
-                return 'expiring-soon-row'
-              }else if(differrence_in_days == 0){
-                return 'expiring-today-row'
+            if (date.isValid()) {
+              const differrence_in_days = date.diff(dayjs(), "days");
+              if (differrence_in_days < 0) {
+                return "expired-row";
+              } else if (differrence_in_days > 0 && differrence_in_days <= 3) {
+                return "expiring-soon-row";
+              } else if (differrence_in_days == 0) {
+                return "expiring-today-row";
               }
             }
-            return '';
-           
-
+            return "";
           }}
         />
       </div>
@@ -329,14 +405,14 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
             </Typography>
             <Typography variant="h6">
               <div className="d-flex flex-column align-items-center justify-content-center">
-                User Name <br />
+                {currentUser?.username} <br />
               </div>
             </Typography>
             <Typography sx={{ mt: 2 }}>
               <div className="container">
                 <div className="d-flex flex-column align-items-center justify-content-center">
-                  <p>Contact number: +91-9876543210</p>
-                  <p>Address: 123, ABC, PQR, IN</p>
+                  <p>Contact number: {currentUser?.phone}</p>
+                  <p>Address: {currentUser?.address}</p>
                   <br />
                 </div>
               </div>
@@ -345,9 +421,9 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
                 color="primary"
                 onClick={() =>
                   handleVisitProfile({
-                    name: "User Name",
-                    email: "example@user.com",
-                    phone: "+91-9876543210",
+                    name: `${currentUser.username}`,
+                    email: `${currentUser.email}`,
+                    phone: `${currentUser.phone}`,
                   })
                 }
                 sx={{ width: "100%" }}
@@ -367,12 +443,12 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
           <Box sx={style}>
             <Typography variant="h6">
               <a
-                href="tel:+91-9876543210"
+                href={currentUser?.phone}
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <LocalPhoneIcon />
               </a>{" "}
-              +91-9876543210
+              {currentUser?.phone}
             </Typography>
           </Box>
         </Modal>
@@ -386,14 +462,39 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
           onSubmit: handleAddOrEditOrder,
         }}
       >
-        <DialogTitle>Add new order</DialogTitle>
+        <DialogTitle>
+          {" "}
+          {isEditing ? "Renew Order/Edit Order" : "Add new order"}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Enter the details of the new order:
+            {isEditing
+              ? isRenew
+                ? "Renew the order with the selected plan"
+                : "Update the order with new plan"
+              : "Add the details of the new order"}
           </DialogContentText>
+          {isRenew && 
+            <div>
+              <Checkbox
+                checked={renewState}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setRenewState(e.target.checked);
+                  setFormData({
+                    ...formData,
+                    startDate: dayjs(),
+                    expiryDate: dayjs().add(formData.duration, "month"),
+                  });
+                }}
+              />
+              <Typography variant="p" className="mt-2">Renew Existing Plan</Typography>
+            </div>
+          }
           <TextField
             label="Domain name"
             fullWidth
+            value={formData.domainName}
             onChange={(e) => {
               setFormData({ ...formData, domainName: e.target.value });
             }}
@@ -541,7 +642,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
               }}
               type="submit"
             >
-              Add
+              {isEditing ? "Update" : "Add"}
             </Button>
           </div>
         </DialogContent>

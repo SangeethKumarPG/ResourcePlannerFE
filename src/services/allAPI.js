@@ -55,4 +55,19 @@ export const fetchOrdersAPI = async(header)=>{
     return await commonAPI("GET",`${BASE_URL}/orders`,{},header)
 }
 
+// update order
+export const updateOrderAPI = async(orderDetail, header, id)=>{
+    return await commonAPI("PUT",`${BASE_URL}/orders/${id}`,orderDetail,header)
+}
+
+//delete order
+export const deleteOrderAPI = async(id, header)=>{
+    return await commonAPI("DELETE",`${BASE_URL}/orders/${id}`,{},header)
+}
+
+// fetch orderById
+export const fetchOrderByIdAPI = async(id)=>{
+    return await commonAPI("GET",`${BASE_URL}/orders/${id}`,{},"")
+}
+
 
