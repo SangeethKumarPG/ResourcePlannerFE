@@ -13,10 +13,11 @@ import {
   DialogContentText,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
-import { fetchOrderByIdAPI } from "../services/allAPI";
+import { fetchOrderByIdAPI, changePaymentStatusAPI } from "../services/allAPI";
 import tickIcon from "../assets/tickicon.svg";
 import pendingIcon from "../assets/pendingicon.svg";
 import { toast } from "react-toastify";
+
 
 function PaymentRedirect() {
   const [name, setName] = useState("");
@@ -35,6 +36,7 @@ function PaymentRedirect() {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({});
   const { id } = useParams();
+  const [refresh, setRefresh] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -49,6 +51,7 @@ function PaymentRedirect() {
     const response = await fetchOrderByIdAPI(id);
     if (response.status === 200) {
       setOrder(response.data);
+      console.log(response.data);
     } else {
       toast.error("Error fetching order details");
     }
@@ -56,16 +59,18 @@ function PaymentRedirect() {
 
   const checkPaymentStatus = () => {
     if (order.paymentStatus === "paid") {
-      setPaymentSuccess(true);
+      setPaymentSuccess("paid");
     } else if (order.paymentStatus === "debitedfromsource") {
       setPaymentStatus("debitedfromsource");
+    }else{
+      setPaymentStatus("error");
     }
   };
 
   useEffect(() => {
     fetchOrder();
     checkPaymentStatus();
-  }, [order.paymentStatus]);
+  }, [order.paymentStatus ]);
 
   const handleNameChange = (event) => {
     const value = event.target.value;
@@ -117,17 +122,29 @@ function PaymentRedirect() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (formData.status === "success") {
       setPaymentSuccess(true);
-      setPaymentStatus("");
+      const response = await changePaymentStatusAPI(id, {paymentStatus:"paid"}).then(()=>{
+        setRefresh(!refresh)      
+      });
+      toast.success("Payment successful");
+      
     } else if (formData.status === "debitedfromsource") {
       setPaymentStatus("debitedfromsource");
+      const response = await changePaymentStatusAPI(id, {paymentStatus:"debitedfromsource"}).then(()=>{
+        setRefresh(!refresh);
+      });
     } else {
-      toast.error("Payment failed");
+      toast.error("Payment failed kindly retry or contact support");
+      const response = await changePaymentStatusAPI(id, {paymentStatus:"error"}).then(()=>setRefresh(!refresh));
     }
+    setPaymentStatus("");
     handleClose();
   };
+  useEffect(() => {
+    fetchOrder();
+  },[refresh]);
 
   return (
     <Box
@@ -138,7 +155,7 @@ function PaymentRedirect() {
       bgcolor="background.default"
     >
       <Container maxWidth="xs">
-        {paymentSuccess ? (
+        {paymentSuccess === "paid" ? (
           <Box
             display="flex"
             flexDirection="column"
@@ -262,6 +279,7 @@ function PaymentRedirect() {
               size="large"
               sx={{ mt: 2 }}
               onClick={handleClickOpen}
+              disabled={nameError || mobileError || cardError || expiryError || cvvError}
             >
               Make Payment
             </Button>

@@ -11,6 +11,7 @@ import {
   FormControl,
   InputLabel,
   Autocomplete,
+  Box,
 } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { DataGrid } from "@mui/x-data-grid";
@@ -20,7 +21,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { addCustomer, fetchCustomers, editCustomer, deleteCustomer } from "../redux/customerSlice";
+import {
+  addCustomer,
+  fetchCustomers,
+  editCustomer,
+  deleteCustomer,
+} from "../redux/customerSlice";
+import { fetchOrders } from "../redux/ordersSlice";
+import { fetchProductsServices } from "../redux/productsAndServicesSlice";
+import dayjs from "dayjs";
 
 
 function CustomerInfo({
@@ -31,10 +40,17 @@ function CustomerInfo({
   const dispatch = useDispatch();
   const [refresh, setRefresh] = useState(false);
   const { customers, status } = useSelector((state) => state.customers);
+  const { orders } = useSelector((state) => state.orders);
+  const { items } = useSelector((state) => state.productsAndServices);
+  // const [activeOrder, setActiveOrder] = useState([]);
+  const [orderRows, setOrderRows] = useState([]);
+  const [orderColumns, setOrderColumns] = useState([]);
   // console.log("Items:",items)
   useEffect(() => {
     if (status === "idle" || refresh) {
       dispatch(fetchCustomers());
+      dispatch(fetchOrders());
+      dispatch(fetchProductsServices());
       setRefresh(false);
     }
   }, [dispatch, status, refresh]);
@@ -42,19 +58,118 @@ function CustomerInfo({
   const [selectedPlan, setSelectedPlan] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  // const [activePlans, setActivePlans] = useState([]);
 
   const handleBackNavigation = () => {
     setSelectedCustomer(null);
     setSelectedView(1);
   };
+  useEffect(() => {
+    if (selectedCustomer !== null) {
+      const activeOrders = orders.filter(
+        (order) => order.userId === selectedCustomer.userId
+      );
+      
+      // setActiveOrder(activeOrders);
 
+      const plans = activeOrders.map((order) => {
+        return items.find((item) => item._id === order.plan);
+      });
+      // setActivePlans(plans);
+
+      if(activeOrders.length > 0 && plans.length > 0){
+        mapDataToGrid(activeOrders,plans);
+      }else{
+        console.log("No active orders found for this customer");
+      }
+    }
+  }, [selectedCustomer, orders, items]);
+
+  const mapDataToGrid = (activeOrder,activePlans)=>{
+    // console.log("Active orders:", activeOrder);
+    // console.log("Plans:", activePlans);
+    const orderColumn = [
+      { field: "domainName", headerName: "Domain", width: 150 },
+      { field: "planName", headerName: "Plan Name", width: 200 },
+      {
+        field: "sslCert",
+        headerName: "SSL Cert",
+        width: 100,
+        renderCell: (params) => (params.value ? "✅" : "❌"),
+      },
+      {
+        field: "emailServer",
+        headerName: "Email",
+        width: 100,
+        renderCell: (params) => (params.value ? "✅" : "❌"),
+      },
+      {
+        field: "server",
+        headerName: "Server",
+        width: 100,
+        renderCell: (params) => (params.value ? "✅" : "❌"),
+      },
+      {
+        field: "website",
+        headerName: "Application",
+        width: 100,
+        renderCell: (params) => (params.value ? "✅" : "❌"),
+      },
+      { field: "paymentStatus", headerName: "Payment Status", width: 150 },
+      {
+        field: "paymentDate",
+        headerName: "Payment Date",
+        width: 150,
+        renderCell: (params) =>
+          params.row.paymentDate
+            ? dayjs(params.row.paymentDate).format("DD/MM/YYYY")
+            : "N/A",
+      },
+      {
+        field: "startDate",
+        headerName: "Start Date",
+        width: 150,
+        renderCell: (params) =>
+          params.row.startDate?
+          dayjs(params.row.startDate).format("DD/MM/YYYY") : 'N/A',
+      },
+      {
+        field: "expiryDate",
+        headerName: "Expiry Date",
+        width: 150,
+        renderCell: (params) =>
+          params.row.expiryDate?
+          dayjs(params.row.expiryDate).format("DD/MM/YYYY"):'N/A',
+      },
+    ];
+    const orderRow = activeOrder.map((order) => ({
+      id: order._id,
+      domainName: order.domainName,
+      planName: activePlans.find((item) => item._id === order.plan)?.serviceName,
+      sslCert: activePlans.find((item) => item._id === order.plan)?.sslCert,
+      emailServer: activePlans.find((item) => item._id === order.plan)?.emailServer,
+      server: activePlans.find((item) => item._id === order.plan)?.server,
+      website: activePlans.find((item) => item._id === order.plan)?.website,
+      paymentStatus: order.paymentStatus,
+      paymentDate: order.paymentDate,
+      startDate: order.startDate,
+      expiryDate: order.expiryDate,
+    }));
+
+
+      // console.log("Order Rows:", orderRow);
+      setOrderRows(orderRow);
+
+    setOrderColumns(orderColumn);
+    // console.log("Order Columns:", orderColumns);
+  }
 
   const handleEdit = (customer) => {
     console.log(customer);
     setAddCustomerDialog(true);
     setIsEditing(true);
     setFormData({
-      _id:customer._id,
+      _id: customer._id,
       username: customer.username,
       address: customer.address,
       phone: customer.phone,
@@ -93,7 +208,6 @@ function CustomerInfo({
       filterable: false,
     },
   ];
-
 
   const filteredRows = customers.filter((row) =>
     Object.values(row).some((value) =>
@@ -199,10 +313,14 @@ function CustomerInfo({
               onSubmit: handleAddorEdit,
             }}
           >
-            <DialogTitle>{isEditing ? "Edit customer details":"Add new customer"}</DialogTitle>
+            <DialogTitle>
+              {isEditing ? "Edit customer details" : "Add new customer"}
+            </DialogTitle>
             <DialogContent>
               <DialogContentText>
-                {isEditing ? "Edit the details of the customer" : "Enter the details of the new customer"}
+                {isEditing
+                  ? "Edit the details of the customer"
+                  : "Enter the details of the new customer"}
               </DialogContentText>
               <TextField
                 label="user name"
@@ -230,7 +348,7 @@ function CustomerInfo({
                 label="phone number"
                 variant="outlined"
                 fullWidth
-                value={phoneNumber||formData.phone}
+                value={phoneNumber || formData.phone}
                 onChange={(newValue) => {
                   setPhoneNumber(newValue);
                   setFormData({ ...formData, phone: newValue });
@@ -248,7 +366,6 @@ function CustomerInfo({
                 }}
                 fullWidth
               />
-              
 
               <div className="d-flex align-items-center justify-content-between mt-3">
                 <Button
@@ -273,7 +390,7 @@ function CustomerInfo({
                     },
                   }}
                 >
-                  {isEditing? "Save Changes":"Add"}
+                  {isEditing ? "Save Changes" : "Add"}
                 </Button>
               </div>
             </DialogContent>
@@ -286,32 +403,79 @@ function CustomerInfo({
             <p>{selectedCustomer?.name}</p>
             <p>{selectedCustomer?.email}</p>
             <p>{selectedCustomer?.phone}</p>
-            <table className="table table-striped table-bordered">
-              <thead>
-                <tr>
-                  <th>Domain</th>
-                  <th>Provider</th>
-                  <th>SSL Cert</th>
-                  <th>Email</th>
-                  <th>Server</th>
-                  <th>Application</th>
-                  <th>Start Date</th>
-                  <th>Expiry Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>domain a</td>
-                  <td>Cloudflare</td>
-                  <td>✅</td>
-                  <td>❌</td>
-                  <td>✅</td>
-                  <td>❌</td>
-                  <td>01/01/2022</td>
-                  <td>01/01/2023</td>
-                </tr>
-              </tbody>
-            </table>
+            {/* <div className="table-responsive">
+              <table className="table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Domain</th>
+                    <th>Plan Name</th>
+                    <th>SSL Cert</th>
+                    <th>Email</th>
+                    <th>Server</th>
+                    <th>Application</th>
+                    <th>Payment Status</th>
+                    <th>Payment Date</th>
+                    <th>Start Date</th>
+                    <th>Expiry Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeOrder.map((order) => (
+                    <tr key={order._id}>
+                      <td>{order.domainName}</td>
+                      <td>
+                        {
+                          activePlans.find((item) => item._id === order.plan)
+                            ?.serviceName
+                        }
+                      </td>
+                      <td>
+                        {activePlans.find((item) => item._id === order.plan)
+                          ?.sslCert
+                          ? "✅"
+                          : "❌"}
+                      </td>
+                      <td>
+                        {activePlans.find((item) => item._id === order.plan)
+                          ?.emailServer
+                          ? "✅"
+                          : "❌"}
+                      </td>
+                      <td>
+                        {activePlans.find((item) => item._id === order.plan)
+                          ?.server
+                          ? "✅"
+                          : "❌"}
+                      </td>
+                      <td>
+                        {activePlans.find((item) => item._id === order.plan)
+                          ?.website
+                          ? "✅"
+                          : "❌"}
+                      </td>
+                      <td>{order.paymentStatus}</td>
+                      <td>
+                        {order.paymentDate
+                          ? dayjs(order.paymentDate).format("DD/MM/YYYY")
+                          : "N/A"}
+                      </td>
+                      <td>{dayjs(order.startDate).format("DD/MM/YYYY")}</td>
+                      <td>{dayjs(order.expiryDate).format("DD/MM/YYYY")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div> */}
+            <Box sx={{width:"100%"}} className="mt-2">
+            <DataGrid
+             rows={orderRows}
+             columns={orderColumns}
+             pageSize={5}
+             rowsPerPageOptions={[5]}
+             getRowId={(row) => row.id}
+             />
+            </Box>
+            
 
             <Button
               variant="contained"

@@ -70,4 +70,8 @@ export const fetchOrderByIdAPI = async(id)=>{
     return await commonAPI("GET",`${BASE_URL}/orders/${id}`,{},"")
 }
 
+// change payment status
+export const changePaymentStatusAPI = async(id, paymentStatus)=>{
+    return await commonAPI("PUT",`${BASE_URL}/orders/make-payment/${id}`,paymentStatus,"")
+}
 

@@ -163,13 +163,19 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
 
   const [searchText, setSearchText] = useState("");
 
-  const filteredRows = orders.filter(
-    (row) =>
+  const filteredRows = orders.filter((row) => {
+    const formattedPaymentDate = row.paymentDate?dayjs(row.paymentDate).format('DD/MM/YYYY') : '';
+    const formattedOrderDate = row.startDate ?dayjs(row.startDate).format('DD/MM/YYYY') : '';
+    const formattedExpiryDate = row.expiryDate?dayjs(row.expiryDate).format('DD/MM/YYYY') : '';
+    return (
       row.domainName.toLowerCase().includes(searchText.toLowerCase()) ||
       row.userName.toLowerCase().includes(searchText.toLowerCase()) ||
-      row.planName.toLowerCase().includes(searchText.toLowerCase())
-  );
-
+      row.planName.toLowerCase().includes(searchText.toLowerCase()) ||
+      formattedPaymentDate.includes(searchText) ||
+      formattedOrderDate.includes(searchText) ||
+      formattedExpiryDate.includes(searchText)
+    );
+  });
   const columns = [
     { field: "domainName", headerName: "Domain Name", width: 200 },
     {
@@ -424,6 +430,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
                     name: `${currentUser.username}`,
                     email: `${currentUser.email}`,
                     phone: `${currentUser.phone}`,
+                    userId : `${currentUser._id}`,
                   })
                 }
                 sx={{ width: "100%" }}
