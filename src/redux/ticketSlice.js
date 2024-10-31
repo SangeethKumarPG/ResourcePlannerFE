@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { createSupportTicketAPI, fetchSupportTicketsAPI, addCommentToSupportTicketAPI } from '../services/allAPI';
+import { createSupportTicketAPI, fetchSupportTicketsAPI, addCommentToSupportTicketAPI, changeSupportTicketStatusAPI } from '../services/allAPI';
 import { toast } from 'react-toastify';
 
 export const addTicket = createAsyncThunk('tickets/addTicket', async(ticketData, {rejectedWithValue})=>{
@@ -63,6 +63,26 @@ export const addComment = createAsyncThunk('tickets/addComment', async(commentDa
     }
 });
 
+export const changeTicketStatus = createAsyncThunk('tickets/changeTicketStatus', async(ticketData, {rejectedWithValue})=>{
+    if(sessionStorage.getItem('userData')){
+        const token = JSON.parse(sessionStorage.getItem('userData')).token;
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+        const {ticketId} = ticketData;
+        delete ticketData.ticketId;
+        const response = await changeSupportTicketStatusAPI(headers, ticketId, ticketData);
+        if(response.status === 200){
+            return response.data;
+        }else{
+            return rejectedWithValue(response.data.message);
+        }
+    }else{
+        return rejectedWithValue('User not logged in');
+    }
+})
+
 const ticketSlice = createSlice({
     name: 'tickets',
     initialState: {
@@ -113,6 +133,23 @@ const ticketSlice = createSlice({
         })
         .addCase(addComment.rejected, (state, action)=>{
             state.status = 'rejected'
+            state.error = action.error.message
+            toast.error(action.error.message, {position:"top-center"});
+        })
+        .addCase(changeTicketStatus.pending, (state)=>{
+            state.status = "loading"
+        })
+        .addCase(changeTicketStatus.fulfilled, (state, action)=>{
+            state.status = "fulfilled"
+            const {_id} = action.payload;
+            const ticketIndex = state.tickets.findIndex((ticket)=>{
+                return ticket._id === _id;
+            })
+            state.tickets[ticketIndex].status = action.payload.status
+            toast.success('Ticket status changed successfully', {position:"top-center"});
+        })
+        .addCase(changeTicketStatus.rejected, (state, action)=>{
+            state.status = "rejected"
             state.error = action.error.message
             toast.error(action.error.message, {position:"top-center"});
         })

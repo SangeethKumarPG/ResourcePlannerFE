@@ -89,3 +89,13 @@ export const fetchSupportTicketsAPI = async(header)=>{
 export const addCommentToSupportTicketAPI = async(header,commentDetail,id)=>{
     return await commonAPI("POST",`${BASE_URL}/support-tickets/add-comments/${id}`,commentDetail,header);
 }
+// change support ticket status
+export const changeSupportTicketStatusAPI = async(header,id,status)=>{
+    return await commonAPI("PUT", `${BASE_URL}/support-tickets/change-status/${id}`,status,header);
+}
+
+
+// fetch agents
+export const fetchAgentsAPI = async(header)=>{
+    return await commonAPI("GET",`${BASE_URL}/agents`,{},header);
+}
