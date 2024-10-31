@@ -75,3 +75,17 @@ export const changePaymentStatusAPI = async(id, paymentStatus)=>{
     return await commonAPI("PUT",`${BASE_URL}/orders/make-payment/${id}`,paymentStatus,"")
 }
 
+// create support tickets
+export const createSupportTicketAPI = async( header,supportTicketDetail)=>{
+    return await commonAPI("POST",`${BASE_URL}/support-tickets`,supportTicketDetail,header);
+}
+
+// get all support tickets
+export const fetchSupportTicketsAPI = async(header)=>{
+    return await commonAPI("GET",`${BASE_URL}/support-tickets`,{},header);
+}
+
+// add comment to support ticket
+export const addCommentToSupportTicketAPI = async(header,commentDetail,id)=>{
+    return await commonAPI("POST",`${BASE_URL}/support-tickets/add-comments/${id}`,commentDetail,header);
+}
