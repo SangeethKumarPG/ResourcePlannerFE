@@ -22,6 +22,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MessageIcon from "@mui/icons-material/Message";
 import TickIcon from "@mui/icons-material/CheckCircle";
 import AssignIcon from "@mui/icons-material/AssignmentInd";
+import DeleteIcon from "@mui/icons-material/Delete";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import { useSelector } from "react-redux";
 import { fetchCustomers } from "../redux/customerSlice";
@@ -33,6 +34,8 @@ import {
   fetchTickets,
   addComment,
   changeTicketStatus,
+  assignAgent,
+  deleteTicket,
 } from "../redux/ticketSlice";
 import SendIcon from "@mui/icons-material/Send";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
@@ -67,7 +70,6 @@ function SupportTicket() {
     comment: "",
     addedDate: null,
   });
-
 
   const [formData, setFormData] = useState({
     title: "",
@@ -104,20 +106,28 @@ function SupportTicket() {
         (filter === "open" && ticket.status === "open") ||
         (filter === "closed" && ticket.status === "closed") ||
         (filter === "pending" && ticket.status === "pending");
-
+      const createdOn = ticket?.createdDate
+        ? dayjs(ticket.createdDate).format("DD/MM/YYYY")
+        : "";
+      const resolvedOn = ticket?.resolutionDate
+        ? dayjs(ticket.resolutionDate).format("DD/MM/YYYY")
+        : "";
       const matchSearch =
         ticket._id.toString().includes(searchQuery) ||
         ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ticket.description.toLowerCase().includes(searchQuery.toLowerCase());
+        ticket.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        createdOn.includes(searchQuery) ||
+        resolvedOn.includes(searchQuery);
       return matchFilter && matchSearch;
     })
     .sort((a, b) => {
-      const dateA = new Date(a.createdOn);
-      const dateB = new Date(b.createdOn);
+      const dateA = dayjs(a.createdDate);
+      const dateB = dayjs(b.createdDate);
+
       if (sortOrder === "recent") {
-        return dateB - dateA;
-      } else {
-        return dateA - dateB;
+        return dateB.isAfter(dateA) ? 1 : -1;
+      } else if (sortOrder === "oldest") {
+        return dateA.isAfter(dateB) ? 1 : -1;
       }
     });
   const indexOfLastTicker = currentPage * ticketsPerPage;
@@ -155,6 +165,13 @@ function SupportTicket() {
     ticketId: "",
     status: "",
   });
+
+  const handleAssignAgent = (e, inputValue, ticketId) => {
+    e.preventDefault();
+    console.log("Assign Agent: ", inputValue);
+    console.log("Ticket id: ", ticketId);
+    dispatch(assignAgent({ agentId: inputValue._id, ticketId: ticketId }));
+  };
   const handleUpdateTicketStatus = () => {
     console.log("Ticket Status Update: ", ticketStatusUpdate);
     dispatch(changeTicketStatus(ticketStatusUpdate)).then(() =>
@@ -164,77 +181,70 @@ function SupportTicket() {
       ticketId: "",
       status: "",
     });
+  };
 
+  const handleDeleteTicket = (ticketId) => {
+    // console.log("Delete Ticket: ", ticketId);
+    dispatch(deleteTicket(ticketId));
   };
   return (
     <>
       <h4 className="my-2">Support Tickets</h4>
-      <div className="row my-3">
-        <div className="col-md-10 p-0">
-          <TextField
-            id="searchTickets"
-            label="Search tickets by Id, title"
-            variant="outlined"
-            onChange={(e) => setSearchQuery(e.target.value)}
-            fullWidth
-          />
-        </div>
-        <div className="col-md-2">
+      <Box 
+  display="flex" 
+  flexDirection={{ xs: "column", md: "row" }} 
+  justifyContent="space-between" 
+  className="my-3"
+>
+  <Box flex="1" pr={{ xs: 0, md: 2 }}>
+    <TextField
+      id="searchTickets"
+      label="Search tickets by Id, title, created date, or resolved date(DD/MM/YYYY)"
+      variant="outlined"
+      onChange={(e) => setSearchQuery(e.target.value)}
+      fullWidth
+    />
+  </Box>
+  <Box>
+    <Button
+      variant="outlined"
+      startIcon={<NoteAddIcon />}
+      sx={{
+        width: "100%",
+        height: "100%",
+        "&:hover": {
+          backgroundColor: "green",
+          color: "white",
+        },
+      }}
+      onClick={handleOpenNewTicketDialog}
+    >
+      
+    </Button>
+  </Box>
+</Box>
+
+      <Box
+        display="flex"
+        flexDirection={{ xs: "column", md: "row" }}
+        justifyContent="evenly"
+      >
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          flex="1"
+        >
           <Button
             variant="outlined"
-            startIcon={<NoteAddIcon />}
-            sx={{
-              width: "100%",
-              height: "100%",
-              "&:hover": {
-                backgroundColor: "green",
-                color: "white",
-              },
-            }}
-            onClick={handleOpenNewTicketDialog}
-          ></Button>
-        </div>
-      </div>
-      <div className="container">
-        <div className="my-2 d-flex align-items-center justify-content-between">
-          <Button
-            variant="outlined"
             sx={{
               "&:hover": {
-                backgroundColor: "red",
-                color: "white",
+                backgroundColor: "cyan",
+                color: "black",
               },
             }}
-            className="mx-2"
-            onClick={() => handleFilterChange("open")}
+            onClick={() => handleFilterChange("all")}
           >
-            Open
-          </Button>
-          <Button
-            variant="outlined"
-            sx={{
-              "&:hover": {
-                backgroundColor: "green",
-                color: "white",
-              },
-            }}
-            className="mx-2"
-            onClick={() => handleFilterChange("closed")}
-          >
-            Closed
-          </Button>
-          <Button
-            variant="outlined"
-            sx={{
-              "&:hover": {
-                backgroundColor: "orange",
-                color: "white",
-              },
-            }}
-            className="mx-2"
-            onClick={() => handleFilterChange("pending")}
-          >
-            Pending
+            All
           </Button>
           <Button
             variant="outlined"
@@ -256,15 +266,55 @@ function SupportTicket() {
                 color: "white",
               },
             }}
-            className="mx-2"
             onClick={() => setSortOrder("oldest")}
           >
             Oldest
           </Button>
-        </div>
-      </div>
+        </Box>
 
-      {currentTickets.map((ticket) => (
+        <Box display="flex" justifyContent="space-between" flex="1"
+        sx={{ml:{xs:0, md:2}}}
+        >
+          <Button
+            variant="outlined"
+            sx={{
+              "&:hover": {
+                backgroundColor: "red",
+                color: "white",
+              },
+            }}
+            onClick={() => handleFilterChange("open")}
+          >
+            Open
+          </Button>
+          <Button
+            variant="outlined"
+            sx={{
+              "&:hover": {
+                backgroundColor: "green",
+                color: "white",
+              },
+            }}
+            onClick={() => handleFilterChange("closed")}
+          >
+            Closed
+          </Button>
+          <Button
+            variant="outlined"
+            sx={{
+              "&:hover": {
+                backgroundColor: "orange",
+                color: "white",
+              },
+            }}
+            onClick={() => handleFilterChange("pending")}
+          >
+            Pending
+          </Button>
+        </Box>
+      </Box>
+
+      {currentTickets.map((ticket, index) => (
         <div className="row my-3" key={ticket._id}>
           <div className="col-12">
             <Accordion
@@ -280,12 +330,38 @@ function SupportTicket() {
                 style={{ padding: "0 10px" }}
               >
                 <Box display="flex" justifyContent="space-between" width="100%">
-                  <Typography>ID: {ticket?._id}</Typography>
+                  <Typography>{index + 1}</Typography>
                   <Typography>{ticket?.title}</Typography>
                   <Typography>Status: {ticket?.status}</Typography>
+                  <Typography>
+                    <IconButton>
+                      <DeleteIcon
+                        onClick={() => handleDeleteTicket(ticket._id)}
+                      />
+                    </IconButton>
+                  </Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
+                {ticket?.resolutionDate && (
+                  <Box
+                    display={"flex"}
+                    justifyContent={"flex-start"}
+                    className="mt-1 mb-1"
+                    sx={{
+                      backgroundColor: "lightgreen",
+                    }}
+                  >
+                    <p>
+                      Resolution Date:
+                      {ticket?.resolutionDate
+                        ? dayjs(ticket?.resolutionDate).format(
+                            "DD/MM/YYYY HH:mm:ss"
+                          )
+                        : "N/A"}
+                    </p>
+                  </Box>
+                )}
                 <Box
                   display={"flex"}
                   justifyContent={"space-between"}
@@ -307,6 +383,7 @@ function SupportTicket() {
                     {orders.find((o) => o._id === ticket?.order)?.domainName}
                   </p>
                 </Box>
+
                 <Box
                   display={"flex"}
                   justifyContent={"center"}
@@ -332,6 +409,10 @@ function SupportTicket() {
                   display={"flex"}
                   justifyContent={"space-between"}
                   className="mt-2"
+                  sx={{
+                    backgroundColor: "Highlight",
+                    borderRadius: "5px",
+                  }}
                 >
                   <p>
                     Created on:{" "}
@@ -339,10 +420,16 @@ function SupportTicket() {
                       ? dayjs(ticket?.createdDate).format("DD/MM/YYYY HH:mm:ss")
                       : "N/A"}
                   </p>
-                  <p>Created By : {agents.find(a=>a._id === ticket?.createdBy)?.username}</p>
+                  <p>
+                    Created By :{" "}
+                    {agents.find((a) => a._id === ticket?.createdBy)?.username}
+                  </p>
                   <p>
                     Assigned To:{" "}
-                    {ticket?.assignedTo ? ticket?.assignedTo : "N/A"}
+                    {ticket?.assignedTo
+                      ? agents.find((a) => a._id === ticket?.assignedTo)
+                          ?.username
+                      : "N/A"}
                   </p>
                 </Box>
                 <Box display={"flex"} className="mt-3">
@@ -374,12 +461,35 @@ function SupportTicket() {
                     color="secondary"
                     className="ms-2 mt-2"
                     sx={{
-                      height:"3.2rem"
+                      height: "3.2rem",
                     }}
                     onClick={handleUpdateTicketStatus}
                   >
                     Update
                   </Button>
+                </Box>
+                <Box display={"flex"} className="mt-2 mb-2">
+                  <Autocomplete
+                    id="assigned-to"
+                    fullWidth
+                    getOptionLabel={(option) => option.username}
+                    options={agents}
+                    value={agents.find((a) => a._id === ticket?.assignedTo)}
+                    onChange={(e, newValue) => {
+                      e.preventDefault();
+                      if (newValue) {
+                        handleAssignAgent(e, newValue, ticket._id);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Assign to agent..."
+                        variant="outlined"
+                        fullWidth
+                      />
+                    )}
+                  />
                 </Box>
                 <Accordion expanded={expandedTicket === ticket._id}>
                   <AccordionSummary>
@@ -436,7 +546,10 @@ function SupportTicket() {
                               variant="p"
                               sx={{ ml: 1, fontWeight: "bold" }}
                             >
-                              {agents.find(a=>a._id===comment?.userId)?.username}
+                              {
+                                agents.find((a) => a._id === comment?.userId)
+                                  ?.username
+                              }
                             </Typography>
                             <Typography
                               variant="p"

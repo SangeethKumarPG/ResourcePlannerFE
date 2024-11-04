@@ -99,3 +99,13 @@ export const changeSupportTicketStatusAPI = async(header,id,status)=>{
 export const fetchAgentsAPI = async(header)=>{
     return await commonAPI("GET",`${BASE_URL}/agents`,{},header);
 }
+
+// assign support ticket to agent
+export const assignAgentAPI = async(header, id, agentId)=>{
+    return await commonAPI("PUT", `${BASE_URL}/support-tickets/assign-agent/${id}`, {agentId:agentId}, header)
+}
+
+//delete ticket
+export const deleteTicketAPI = async(id, header)=>{
+    return await commonAPI("DELETE", `${BASE_URL}/support-tickets/${id}`,{},header);
+}
