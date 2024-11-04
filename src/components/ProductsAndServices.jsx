@@ -8,6 +8,7 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  Box,
 } from "@mui/material";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import EditIcon from "@mui/icons-material/Edit";
@@ -184,8 +185,8 @@ function ProductsAndServices() {
   return (
     <>
       <h4>Products and Services</h4>
-      <div className="row mt-2">
-        <div className="col-md-10">
+      <Box display={"flex"} sx={{paddingRight:"10px"}}>
+          <Box sx={{width:"95%"}}>
           <TextField
             variant="outlined"
             label="Search for products and services"
@@ -193,8 +194,8 @@ function ProductsAndServices() {
             value={searchTerm}
             onChange={handleSearch}
           />
-        </div>
-        <div className="col-md-2">
+          </Box>
+          <Box>
           <Button
             variant="outlined"
             sx={{
@@ -209,12 +210,16 @@ function ProductsAndServices() {
           >
             <AddBusinessIcon />
           </Button>
-        </div>
-      </div>
-
-      <div className="row mt-2">
-        <div className="col-md-12" style={{ height: 500, width: "100%" }}>
-          <DataGrid
+        </Box>
+      </Box>
+      <Box sx={{
+              height: 500,
+              width: "100%",
+              maxWidth: "95vw",
+              margin: "0 auto",
+              overflow: "hidden",
+            }}>
+      <DataGrid
             rows={filteredRows}
             getRowId={(row)=>row._id}
             columns={columns}
@@ -223,8 +228,21 @@ function ProductsAndServices() {
             checkboxSelection={false}
             disableSelectionOnClick
           />
+      </Box>
+      {/* <div className="row mt-2">
+        <div className="col-md-10">
+          
+        </div>
+        <div className="col-md-2">
+
         </div>
       </div>
+
+      <div className="row mt-2">
+        <div className="col-md-12" style={{ height: 500, width: "100%" }}>
+
+        </div>
+      </div> */}
 
       <Dialog
         open={open}

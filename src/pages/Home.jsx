@@ -15,11 +15,12 @@ import ProductsAndServices from "../components/ProductsAndServices";
 import Settings from "../components/Settings";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { Box } from "@mui/material";
 
 function Home() {
   const [selectedView, setSelectedView] = useState(0);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
@@ -69,22 +70,30 @@ function Home() {
 
   return (
     <>
-      {isLoggedIn && (
-        <div className="row ms-0">
-          <div
-            className={isCollapsed ? `col-md-1 mt-2 p-0` : `col-md-3 mt-2 p-0`}
-          >
-            <SideBar
-              setSelectedView={setSelectedView}
-              setIsCollapsed={setIsCollapsed}
-              isCollapsed={isCollapsed}
-            />
-          </div>
-          <div className={isCollapsed ? `col-md-11 mt-2` : `col-md-9 mt-2`}>
-            {renderMainView()}
-          </div>
-        </div>
-      )}
+     {isLoggedIn && (
+  <Box display="flex" mt={2}>
+    <Box
+      sx={{
+        width: isCollapsed ? 'auto' : '25%', // 1 out of 4 columns for md size
+        transition: 'width 0.3s', // Optional: smooth transition for collapsing
+      }}
+    >
+      <SideBar
+        setSelectedView={setSelectedView}
+        setIsCollapsed={setIsCollapsed}
+        isCollapsed={isCollapsed}
+      />
+    </Box>
+    <Box
+      sx={{
+        flexGrow: 1, // Takes the remaining width
+      }}
+    >
+      {renderMainView()}
+    </Box>
+  </Box>
+)}
+
     </>
   );
 }

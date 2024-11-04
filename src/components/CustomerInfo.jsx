@@ -31,7 +31,6 @@ import { fetchOrders } from "../redux/ordersSlice";
 import { fetchProductsServices } from "../redux/productsAndServicesSlice";
 import dayjs from "dayjs";
 
-
 function CustomerInfo({
   selectedCustomer,
   setSelectedCustomer,
@@ -69,7 +68,7 @@ function CustomerInfo({
       const activeOrders = orders.filter(
         (order) => order.userId === selectedCustomer.userId
       );
-      
+
       // setActiveOrder(activeOrders);
 
       const plans = activeOrders.map((order) => {
@@ -77,15 +76,15 @@ function CustomerInfo({
       });
       // setActivePlans(plans);
 
-      if(activeOrders.length > 0 && plans.length > 0){
-        mapDataToGrid(activeOrders,plans);
-      }else{
+      if (activeOrders.length > 0 && plans.length > 0) {
+        mapDataToGrid(activeOrders, plans);
+      } else {
         console.log("No active orders found for this customer");
       }
     }
   }, [selectedCustomer, orders, items]);
 
-  const mapDataToGrid = (activeOrder,activePlans)=>{
+  const mapDataToGrid = (activeOrder, activePlans) => {
     // console.log("Active orders:", activeOrder);
     // console.log("Plans:", activePlans);
     const orderColumn = [
@@ -130,24 +129,28 @@ function CustomerInfo({
         headerName: "Start Date",
         width: 150,
         renderCell: (params) =>
-          params.row.startDate?
-          dayjs(params.row.startDate).format("DD/MM/YYYY") : 'N/A',
+          params.row.startDate
+            ? dayjs(params.row.startDate).format("DD/MM/YYYY")
+            : "N/A",
       },
       {
         field: "expiryDate",
         headerName: "Expiry Date",
         width: 150,
         renderCell: (params) =>
-          params.row.expiryDate?
-          dayjs(params.row.expiryDate).format("DD/MM/YYYY"):'N/A',
+          params.row.expiryDate
+            ? dayjs(params.row.expiryDate).format("DD/MM/YYYY")
+            : "N/A",
       },
     ];
     const orderRow = activeOrder.map((order) => ({
       id: order._id,
       domainName: order.domainName,
-      planName: activePlans.find((item) => item._id === order.plan)?.serviceName,
+      planName: activePlans.find((item) => item._id === order.plan)
+        ?.serviceName,
       sslCert: activePlans.find((item) => item._id === order.plan)?.sslCert,
-      emailServer: activePlans.find((item) => item._id === order.plan)?.emailServer,
+      emailServer: activePlans.find((item) => item._id === order.plan)
+        ?.emailServer,
       server: activePlans.find((item) => item._id === order.plan)?.server,
       website: activePlans.find((item) => item._id === order.plan)?.website,
       paymentStatus: order.paymentStatus,
@@ -156,13 +159,12 @@ function CustomerInfo({
       expiryDate: order.expiryDate,
     }));
 
-
-      // console.log("Order Rows:", orderRow);
-      setOrderRows(orderRow);
+    // console.log("Order Rows:", orderRow);
+    setOrderRows(orderRow);
 
     setOrderColumns(orderColumn);
     // console.log("Order Columns:", orderColumns);
-  }
+  };
 
   const handleEdit = (customer) => {
     console.log(customer);
@@ -254,18 +256,17 @@ function CustomerInfo({
     <>
       <h4>Customer Details</h4>
       {selectedCustomer === null ? (
-        <div className="container p-0 mx-0 mt-2">
-          <div className="row mt-2">
-            <div className="col-md-3">
-              {" "}
-              <h4>All customers:</h4>
-            </div>
-            <div className="col-md-3"></div>
-            <div className="col-md-3"></div>
-            <div className="col-md-3"></div>
-          </div>
-          <div className="row mt-2">
-            <div className="col-md-10">
+        <Box>
+          <Box>
+            <h4>All customers:</h4>
+          </Box>
+          <Box
+            display={"flex"}
+            sx={{
+              paddingRight: "10px",
+            }}
+          >
+            <Box sx={{ width: "95%" }}>
               <TextField
                 variant="outlined"
                 placeholder="Search all columns"
@@ -273,8 +274,8 @@ function CustomerInfo({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-            </div>
-            <div className="col-md-2">
+            </Box>
+            <Box>
               <Button
                 variant="outlined"
                 startIcon={<PersonAddIcon />}
@@ -288,21 +289,25 @@ function CustomerInfo({
                 }}
                 onClick={openAddCustomerDialog}
               ></Button>
-            </div>
-          </div>
-          <div className="row mt-2">
-            <div className="col-md-12">
-              <div style={{ height: 500, width: "100%" }}>
-                <DataGrid
-                  rows={filteredRows}
-                  columns={columns}
-                  getRowId={(row) => row._id}
-                  pageSize={6}
-                  rowsPerPageOptions={[5]}
-                />
-              </div>
-            </div>
-          </div>
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              height: 500,
+              width: "100%",
+              maxWidth: "95vw",
+              margin: "0 auto",
+              overflow: "hidden",
+            }}
+          >
+            <DataGrid
+              rows={filteredRows}
+              columns={columns}
+              getRowId={(row) => row._id}
+              pageSize={6}
+              rowsPerPageOptions={[5]}
+            />
+          </Box>
           <Dialog
             open={addCustomerDialog}
             onClose={closeAddCustomerDialog}
@@ -395,7 +400,7 @@ function CustomerInfo({
               </div>
             </DialogContent>
           </Dialog>
-        </div>
+        </Box>
       ) : (
         <div className="row">
           <div className="col-md-12 d-flex flex-column justify-content-center align-items-center mt-5 shadow border rounded p-3">
@@ -403,79 +408,15 @@ function CustomerInfo({
             <p>{selectedCustomer?.name}</p>
             <p>{selectedCustomer?.email}</p>
             <p>{selectedCustomer?.phone}</p>
-            {/* <div className="table-responsive">
-              <table className="table table-striped table-bordered">
-                <thead>
-                  <tr>
-                    <th>Domain</th>
-                    <th>Plan Name</th>
-                    <th>SSL Cert</th>
-                    <th>Email</th>
-                    <th>Server</th>
-                    <th>Application</th>
-                    <th>Payment Status</th>
-                    <th>Payment Date</th>
-                    <th>Start Date</th>
-                    <th>Expiry Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeOrder.map((order) => (
-                    <tr key={order._id}>
-                      <td>{order.domainName}</td>
-                      <td>
-                        {
-                          activePlans.find((item) => item._id === order.plan)
-                            ?.serviceName
-                        }
-                      </td>
-                      <td>
-                        {activePlans.find((item) => item._id === order.plan)
-                          ?.sslCert
-                          ? "✅"
-                          : "❌"}
-                      </td>
-                      <td>
-                        {activePlans.find((item) => item._id === order.plan)
-                          ?.emailServer
-                          ? "✅"
-                          : "❌"}
-                      </td>
-                      <td>
-                        {activePlans.find((item) => item._id === order.plan)
-                          ?.server
-                          ? "✅"
-                          : "❌"}
-                      </td>
-                      <td>
-                        {activePlans.find((item) => item._id === order.plan)
-                          ?.website
-                          ? "✅"
-                          : "❌"}
-                      </td>
-                      <td>{order.paymentStatus}</td>
-                      <td>
-                        {order.paymentDate
-                          ? dayjs(order.paymentDate).format("DD/MM/YYYY")
-                          : "N/A"}
-                      </td>
-                      <td>{dayjs(order.startDate).format("DD/MM/YYYY")}</td>
-                      <td>{dayjs(order.expiryDate).format("DD/MM/YYYY")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div> */}
-            <Box sx={{width:"100%"}} className="mt-2">
-            <DataGrid
-             rows={orderRows}
-             columns={orderColumns}
-             pageSize={5}
-             rowsPerPageOptions={[5]}
-             getRowId={(row) => row.id}
-             />
+            <Box sx={{ width: "100%" }} className="mt-2">
+              <DataGrid
+                rows={orderRows}
+                columns={orderColumns}
+                pageSize={5}
+                rowsPerPageOptions={[5]}
+                getRowId={(row) => row.id}
+              />
             </Box>
-            
 
             <Button
               variant="contained"

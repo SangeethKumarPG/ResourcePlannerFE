@@ -37,7 +37,12 @@ import { fetchCustomers } from "../redux/customerSlice";
 import { fetchProductsServices } from "../redux/productsAndServicesSlice";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
-import { addOrder, fetchOrders, renewOrder, deleteOrder } from "../redux/ordersSlice";
+import {
+  addOrder,
+  fetchOrders,
+  renewOrder,
+  deleteOrder,
+} from "../redux/ordersSlice";
 import dayjs from "dayjs";
 import "./Orders.css";
 
@@ -70,7 +75,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     thirdPartyDomain: false,
     startDate: dayjs(),
   });
- 
+
   const handleAddOrEditOrder = (e) => {
     e.preventDefault();
     if (isEditing) {
@@ -99,9 +104,9 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     handleCloseAddOrderDialog();
   };
 
-  const handleDelete=(order)=>{
+  const handleDelete = (order) => {
     dispatch(deleteOrder(order._id)).then(() => setRefresh(true));
-  }
+  };
 
   // console.log("Customers : ", customers);
   // console.log("Form data : ",formData);
@@ -135,26 +140,28 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
 
   const [open, setOpen] = useState(false);
   const handleOpen = (user) => {
-    const userDetails = customers.filter((customer) => customer._id === user.userId)
-    setCurrentUser(userDetails[0])
+    const userDetails = customers.filter(
+      (customer) => customer._id === user.userId
+    );
+    setCurrentUser(userDetails[0]);
     setOpen(true);
-  }
+  };
   const handleClose = () => {
     setCurrentUser(null);
     setOpen(false);
-  }
-  const [currentUser, setCurrentUser]= useState(null);
+  };
+  const [currentUser, setCurrentUser] = useState(null);
   const [openDialler, setOpenDialler] = useState(false);
   const handleOpenDialler = (order) => {
-    const user = customers.filter((customer) => customer._id === order.userId)
-    setCurrentUser(user[0])
+    const user = customers.filter((customer) => customer._id === order.userId);
+    setCurrentUser(user[0]);
     // console.log("Current user : ", user);
     setOpenDialler(true);
-  }
-  const handleCloseDialler = () =>{
+  };
+  const handleCloseDialler = () => {
     setCurrentUser(null);
     setOpenDialler(false);
-  } 
+  };
 
   const handleVisitProfile = (customer) => {
     setSelectedCustomer(customer);
@@ -164,9 +171,15 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
   const [searchText, setSearchText] = useState("");
 
   const filteredRows = orders.filter((row) => {
-    const formattedPaymentDate = row.paymentDate?dayjs(row.paymentDate).format('DD/MM/YYYY') : '';
-    const formattedOrderDate = row.startDate ?dayjs(row.startDate).format('DD/MM/YYYY') : '';
-    const formattedExpiryDate = row.expiryDate?dayjs(row.expiryDate).format('DD/MM/YYYY') : '';
+    const formattedPaymentDate = row.paymentDate
+      ? dayjs(row.paymentDate).format("DD/MM/YYYY")
+      : "";
+    const formattedOrderDate = row.startDate
+      ? dayjs(row.startDate).format("DD/MM/YYYY")
+      : "";
+    const formattedExpiryDate = row.expiryDate
+      ? dayjs(row.expiryDate).format("DD/MM/YYYY")
+      : "";
     return (
       row.domainName.toLowerCase().includes(searchText.toLowerCase()) ||
       row.userName.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -206,7 +219,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
       headerName: "User Name",
       width: 200,
       renderCell: (params) => (
-        <a href="#" onClick={()=> handleOpen(params.row)}>
+        <a href="#" onClick={() => handleOpen(params.row)}>
           {params.value}
         </a>
       ),
@@ -238,16 +251,16 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
       },
     },
     {
-      field:"paymentStatus",
+      field: "paymentStatus",
       headerName: "Payment Status",
-      width: 150
+      width: 150,
     },
     {
-      field:"paymentDate",
+      field: "paymentDate",
       headerName: "Payment Date",
       width: 150,
       renderCell: (params) => {
-        if(!params.value){
+        if (!params.value) {
           return "Not Paid";
         }
         const date = dayjs(params.value);
@@ -264,9 +277,9 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
       width: 200,
       renderCell: (params) => (
         <div style={{ display: "flex", alignItems: "center" }}>
-          <DeleteIcon onClick={()=>handleDelete(params.row)} />
+          <DeleteIcon onClick={() => handleDelete(params.row)} />
           <AutorenewIcon onClick={() => handleRenew(params.row)} />
-          <LocalPhoneIcon onClick={()=>handleOpenDialler(params.row)} />
+          <LocalPhoneIcon onClick={() => handleOpenDialler(params.row)} />
         </div>
       ),
     },
@@ -276,7 +289,6 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
   const handleAddOrderDialog = () => {
     setAddOrderDialog(true);
   };
-
 
   const handleRenew = (order) => {
     setIsEditing(true);
@@ -299,9 +311,9 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
           startDate: dayjs(order.startDate),
           expiryDate: dayjs(order.expiryDate),
         });
-      }else{
+      } else {
         setFormData({
-          _id : order._id,
+          _id: order._id,
           domainName: order.domainName,
           userName: order.userName,
           userId: order.userId,
@@ -318,7 +330,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
   };
 
   const handleCloseAddOrderDialog = () => {
-    if(isEditing){
+    if (isEditing) {
       setIsEditing(false);
       setIsRenew(false);
       setRenewState(false);
@@ -337,14 +349,17 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     });
   };
 
-
-
-
   return (
     <>
       <h4>Orders</h4>
-      <div className="row mb-3 mt-3">
-        <div className="col-md-10 ps-0">
+      <Box
+        display={"flex"}
+        // justifyContent={"space-between"}
+
+        sx={{ paddingRight: "10px" }}
+        className="mt-2"
+      >
+        <Box sx={{ width: "95%" }}>
           <TextField
             variant="outlined"
             placeholder="Search by domain name, username or service"
@@ -359,8 +374,8 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
             }}
             fullWidth
           />
-        </div>
-        <div className="col-md-2 ps-0">
+        </Box>
+        <Box>
           <Button
             variant="outlined"
             color="primary"
@@ -376,9 +391,25 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
           >
             <AddIcon />
           </Button>
+        </Box>
+      </Box>
+      {/* <div className="row mb-3 mt-3">
+        <div className="col-md-10 ps-0">
+         
         </div>
-      </div>
-      <div style={{ height: 500, width: "100%", marginTop: "2rem" }}>
+        <div className="col-md-2 ps-0">
+         
+        </div>
+      </div> */}
+      <Box
+        sx={{
+          height: 500,
+          width: "100%",
+          maxWidth: "95vw",
+          margin: "0 auto",
+          overflow: "hidden",
+        }}
+      >
         <DataGrid
           rows={filteredRows}
           getRowId={(row) => row._id}
@@ -387,19 +418,19 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
           getRowClassName={(params) => {
             const date = dayjs(params.row.expiryDate);
             if (date.isValid()) {
-              const differrence_in_days = date.diff(dayjs(), "days");
-              if (differrence_in_days < 0) {
+              const differenceInDays = date.diff(dayjs(), "days");
+              if (differenceInDays < 0) {
                 return "expired-row";
-              } else if (differrence_in_days > 0 && differrence_in_days <= 3) {
+              } else if (differenceInDays > 0 && differenceInDays <= 3) {
                 return "expiring-soon-row";
-              } else if (differrence_in_days == 0) {
+              } else if (differenceInDays === 0) {
                 return "expiring-today-row";
               }
             }
             return "";
           }}
         />
-      </div>
+      </Box>
 
       <div>
         <Modal open={open} onClose={handleClose}>
@@ -430,7 +461,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
                     name: `${currentUser.username}`,
                     email: `${currentUser.email}`,
                     phone: `${currentUser.phone}`,
-                    userId : `${currentUser._id}`,
+                    userId: `${currentUser._id}`,
                   })
                 }
                 sx={{ width: "100%" }}
@@ -481,7 +512,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
                 : "Update the order with new plan"
               : "Add the details of the new order"}
           </DialogContentText>
-          {isRenew && 
+          {isRenew && (
             <div>
               <Checkbox
                 checked={renewState}
@@ -495,9 +526,11 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
                   });
                 }}
               />
-              <Typography variant="p" className="mt-2">Renew Existing Plan</Typography>
+              <Typography variant="p" className="mt-2">
+                Renew Existing Plan
+              </Typography>
             </div>
-          }
+          )}
           <TextField
             label="Domain name"
             fullWidth

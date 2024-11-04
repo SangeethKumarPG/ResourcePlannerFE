@@ -43,7 +43,7 @@ import dayjs from "dayjs";
 
 function SupportTicket() {
   const [currentPage, setCurrentPage] = useState(1);
-  const ticketsPerPage = 3;
+  const ticketsPerPage = 10;
   const { customers } = useSelector((state) => state.customers);
   const { orders } = useSelector((state) => state.orders);
   const { tickets, status } = useSelector((state) => state.tickets);
@@ -313,11 +313,16 @@ function SupportTicket() {
           </Button>
         </Box>
       </Box>
-
+      <Box display={"flex"} justifyContent={"space-between"}>
+        <Box><Typography variant="h6">Id</Typography></Box>
+        <Box><Typography variant="h6">Title</Typography></Box>
+        <Box><Typography variant="h6">Status</Typography></Box>
+        <Box><Typography variant="h6">Action</Typography></Box>
+      </Box>
       {currentTickets.map((ticket, index) => (
-        <div className="row my-3" key={ticket._id}>
-          <div className="col-12">
-            <Accordion
+        <Box>
+          <Box>
+          <Accordion
               expanded={expandedTicket === ticket._id}
               onChange={() =>
                 setExpandedTicket(
@@ -577,12 +582,13 @@ function SupportTicket() {
                 </Accordion>
               </AccordionDetails>
             </Accordion>
-          </div>
-        </div>
+          </Box>
+        </Box>
       ))}
-      <div className="d-flex align-items-center justify-content-between my-3 p-0">
-        <div>
-          <Button
+
+      <Box display={"flex"} justifyContent={"space-between"} sx={{marginTop:"2rem"}}>
+        <Box>
+        <Button
             variant="contained"
             color="primary"
             onClick={moveToPreviousPage}
@@ -590,14 +596,14 @@ function SupportTicket() {
           >
             Previous
           </Button>
-        </div>
-        <div>
-          <Typography>
+        </Box>
+        <Box>
+        <Typography>
             Page {currentPage} of {totalPages}
           </Typography>
-        </div>
-        <div>
-          <Button
+        </Box>
+        <Box>
+        <Button
             variant="contained"
             color="primary"
             onClick={moveToNextPage}
@@ -605,8 +611,8 @@ function SupportTicket() {
           >
             Next
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
       <Dialog
         open={openNewTicketDialog}
         onClose={handleCloseNewTicketDialog}

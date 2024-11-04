@@ -28,11 +28,16 @@ function SideBar({ setSelectedView, setIsCollapsed, isCollapsed }) {
 
   const handleToggleSidebar = () => {
     setIsCollapsed((prev) => !prev); 
+    setTimeout(()=>{
+      setIsCollapsed((prev) => !prev);
+    }, 3000);
   };
 
   return (
     <Box sx={{ width: isCollapsed ? "60px" : "240px", bgcolor: "background.paper", transition: 'width 0.3s', margin:'0px' }}>
-      <IconButton onClick={handleToggleSidebar} sx={{ margin: '0px' }}>
+      <IconButton onClick={handleToggleSidebar} sx={{ margin: '0px',
+        display:{xs:'none', sm:'block'}
+       }}>
         {isCollapsed ? <ChevronRightRoundedIcon /> : <ChevronLeftRoundedIcon />}
       </IconButton>
       <Divider />
