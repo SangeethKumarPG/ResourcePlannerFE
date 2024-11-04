@@ -109,3 +109,8 @@ export const assignAgentAPI = async(header, id, agentId)=>{
 export const deleteTicketAPI = async(id, header)=>{
     return await commonAPI("DELETE", `${BASE_URL}/support-tickets/${id}`,{},header);
 }
+
+//add agent
+export const addAgentAPI = async(header, agentData)=>{
+    return await commonAPI("POST", `${BASE_URL}/agents`, agentData, header);
+}

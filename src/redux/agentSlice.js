@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchAgentsAPI } from "../services/allAPI";
+import { addAgentAPI, fetchAgentsAPI } from "../services/allAPI";
 import {toast} from 'react-toastify'
 
 export const fetchAgents = createAsyncThunk('agent/fetchAgents', async(_,{rejectedWithValue})=>{
@@ -17,6 +17,24 @@ export const fetchAgents = createAsyncThunk('agent/fetchAgents', async(_,{reject
         }
     }else{
         return rejectedWithValue('User not logged in');
+    }
+})
+
+export const addAgent = createAsyncThunk('agent/addAgent', async(agentData, {rejectedWithValue})=>{
+    if(sessionStorage.getItem('userData')){
+        const token = JSON.parse(sessionStorage.getItem('userData')).token;
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+        const response = await addAgentAPI(headers, agentData);
+        if(response.status === 201){
+            return response.data;
+        }else{
+            return rejectedWithValue("Unable to add agent");
+        }
+    }else{
+        return rejectedWithValue('User not logged in')
     }
 })
 
@@ -42,6 +60,19 @@ const agentSlice = createSlice({
             state.status ='rejected';
             state.error = action.error.message;
             toast.error(action.error.message, {position:"top-center"});
+        })
+        .addCase(addAgent.pending, (state)=>{
+            state.status = 'loading';
+        })
+        .addCase(addAgent.fulfilled, (state, action)=>{
+            state.status = 'fullfilled';
+            state.agents.push(action.payload);
+            toast.success("Agent added successfully", {position:"top-center"});
+        })
+        .addCase(addAgent.rejected, (state, action)=>{
+            state.status = 'rejected';
+            state.error = action.error.message;
+            toast.error("Unable to add agent", {position:"top-center"});
         })
     }
 })

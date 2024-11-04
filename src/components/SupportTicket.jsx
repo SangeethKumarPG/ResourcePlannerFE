@@ -192,7 +192,6 @@ function SupportTicket() {
       <h4 className="my-2">Support Tickets</h4>
       <Box 
   display="flex" 
-  flexDirection={{ xs: "column", md: "row" }} 
   justifyContent="space-between" 
   className="my-3"
 >
@@ -313,11 +312,11 @@ function SupportTicket() {
           </Button>
         </Box>
       </Box>
-      <Box display={"flex"} justifyContent={"space-between"}>
-        <Box><Typography variant="h6">Id</Typography></Box>
-        <Box><Typography variant="h6">Title</Typography></Box>
-        <Box><Typography variant="h6">Status</Typography></Box>
-        <Box><Typography variant="h6">Action</Typography></Box>
+      <Box display={"flex"} justifyContent={"space-between"} sx={{width:"100%"}}>
+        <Box sx={{ flex: 1, textAlign: 'center' }}><Typography variant="h6">Id</Typography></Box>
+        <Box sx={{ flex: 1, textAlign: 'center' }}><Typography variant="h6">Title</Typography></Box>
+        <Box sx={{ flex: 1, textAlign: 'center' }}><Typography variant="h6">Status</Typography></Box>
+        <Box sx={{ flex: 1, textAlign: 'center' }}><Typography variant="h6">Action</Typography></Box>
       </Box>
       {currentTickets.map((ticket, index) => (
         <Box>
@@ -334,18 +333,16 @@ function SupportTicket() {
                 expandIcon={<ExpandMoreIcon />}
                 style={{ padding: "0 10px" }}
               >
-                <Box display="flex" justifyContent="space-between" width="100%">
-                  <Typography>{index + 1}</Typography>
-                  <Typography>{ticket?.title}</Typography>
-                  <Typography>Status: {ticket?.status}</Typography>
-                  <Typography>
-                    <IconButton>
-                      <DeleteIcon
-                        onClick={() => handleDeleteTicket(ticket._id)}
-                      />
-                    </IconButton>
-                  </Typography>
-                </Box>
+<Box display="flex" justifyContent="space-between" width="100%">
+  <Typography sx={{ flex: 1, textAlign: 'center' }}>{index + 1}</Typography>
+  <Typography sx={{ flex: 1, textAlign: 'center' }}>{ticket?.title}</Typography>
+  <Typography sx={{ flex: 1, textAlign: 'center' }}>{ticket?.status}</Typography>
+  <Typography sx={{ flex: 1, textAlign: 'center' }}>
+    <IconButton>
+      <DeleteIcon onClick={() => handleDeleteTicket(ticket._id)} />
+    </IconButton>
+  </Typography>
+</Box>
               </AccordionSummary>
               <AccordionDetails>
                 {ticket?.resolutionDate && (
