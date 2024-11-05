@@ -20,142 +20,33 @@ import { fetchOrders } from "../redux/ordersSlice";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { fetchTickets } from "../redux/ticketSlice";
-
-
-
-const ordersData = [
-  {
-    provider: "Microsoft",
-    serviceName: "domain",
-    orders: 100,
-    color: "#8884d8",
-  },
-  { provider: "Microsoft", serviceName: "email", orders: 50, color: "#82ca9d" },
-  { provider: "Microsoft", serviceName: "server", orders: 0, color: "#ff8042" },
-  {
-    provider: "Microsoft",
-    serviceName: "sslCertificate",
-    orders: 30,
-    color: "#ffbb28",
-  },
-  {
-    provider: "Microsoft",
-    serviceName: "webApplication",
-    orders: 20,
-    color: "#ffc658",
-  },
-
-  { provider: "GoDaddy", serviceName: "domain", orders: 120, color: "#8884d8" },
-  { provider: "GoDaddy", serviceName: "email", orders: 70, color: "#82ca9d" },
-  { provider: "GoDaddy", serviceName: "server", orders: 10, color: "#ff8042" },
-  {
-    provider: "GoDaddy",
-    serviceName: "sslCertificate",
-    orders: 40,
-    color: "#ffbb28",
-  },
-  {
-    provider: "GoDaddy",
-    serviceName: "webApplication",
-    orders: 25,
-    color: "#ffc658",
-  },
-
-  { provider: "Google", serviceName: "domain", orders: 90, color: "#8884d8" },
-  { provider: "Google", serviceName: "email", orders: 40, color: "#82ca9d" },
-  { provider: "Google", serviceName: "server", orders: 5, color: "#ff8042" },
-  {
-    provider: "Google",
-    serviceName: "sslCertificate",
-    orders: 20,
-    color: "#ffbb28",
-  },
-  {
-    provider: "Google",
-    serviceName: "webApplication",
-    orders: 15,
-    color: "#ffc658",
-  },
-
-  {
-    provider: "Hostinger",
-    serviceName: "domain",
-    orders: 80,
-    color: "#8884d8",
-  },
-  { provider: "Hostinger", serviceName: "email", orders: 60, color: "#82ca9d" },
-  {
-    provider: "Hostinger",
-    serviceName: "server",
-    orders: 20,
-    color: "#ff8042",
-  },
-  {
-    provider: "Hostinger",
-    serviceName: "sslCertificate",
-    orders: 35,
-    color: "#ffbb28",
-  },
-  {
-    provider: "Hostinger",
-    serviceName: "webApplication",
-    orders: 10,
-    color: "#ffc658",
-  },
-];
-
-const monthlyOrdersData = [
-  { month: "Jan", orders: 100 },
-  { month: "Feb", orders: 120 },
-  { month: "Mar", orders: 140 },
-  { month: "Apr", orders: 160 },
-  { month: "May", orders: 180 },
-  { month: "Jun", orders: 200 },
-  { month: "Jul", orders: 220 },
-  { month: "Aug", orders: 240 },
-  { month: "Sep", orders: 260 },
-  { month: "Oct", orders: 280 },
-  { month: "Nov", orders: 300 },
-  { month: "Dec", orders: 320 },
-];
-
-const agentPerformaceData = [
-  {
-    name: "Agent 1",
-    ticketsResolved: 10,
-    ticketsPending: 5,
-    ticketsAssigned: 15,
-  },
-  {
-    name: "Agent 2",
-    ticketsResolved: 20,
-    ticketsPending: 10,
-    ticketsAssigned: 30,
-  },
-  {
-    name: "Agent 3",
-    ticketsResolved: 30,
-    ticketsPending: 15,
-    ticketsAssigned: 45,
-  },
-];
+import { fetchAgents } from "../redux/agentSlice";
+import './Dashboard.css';
 
 function Dashboard() {
   const dispatch = useDispatch();
   const { orders } = useSelector((state) => state.orders);
   const { tickets } = useSelector((state) => state.tickets);
+  const {agents} = useSelector((state)=>state.agents);
   const [expiringToday, setExpiringToday] = useState([]);
   const [expiringSoon, setExpiringSoon] = useState([]);
   const [expiredAccounts, setExpiredAccounts] = useState([]);
+  const [agentPerformaceData, setAgentPerformaceData] = useState([]);
+  const [monthlyOrdersData, setMonthlyOrdersData] = useState([]);
+  const [mostSoldPlans, setMostSoldPlans] = useState([]);
   const [data, setData] = useState([]);
   useEffect(() => {
     dispatch(fetchOrders());
     dispatch(fetchTickets());
+    dispatch(fetchAgents());
   }, [dispatch]);
   useEffect(() => {
     setExpirationCard();
     setIssuesCard();
-  }, [tickets, orders]);
+    setAgentPerformanceCard();
+    setMonthlyOrdersCard();
+    setPlanDataCard();
+  }, [tickets, orders, agents]);
   console.log("Tickets : ", tickets);
   const setIssuesCard = () => {
     const open = [];
@@ -205,17 +96,86 @@ function Dashboard() {
     setExpiringSoon(expiringSoon);
     setExpiringToday(today);
   };
-  // const date = dayjs(params.row.expiryDate);
-  // if (date.isValid()) {
-  //   const differrence_in_days = date.diff(dayjs(), "days");
-  //   if (differrence_in_days < 0) {
-  //     return "expired-row";
-  //   } else if (differrence_in_days > 0 && differrence_in_days <= 3) {
-  //     return "expiring-soon-row";
-  //   } else if (differrence_in_days == 0) {
-  //     return "expiring-today-row";
-  //   }
-  // }
+
+  const setAgentPerformanceCard = () => {
+    const agentData = tickets.filter((ticket)=>ticket?.assignedTo).map(ticket=>({
+      agentId: ticket.assignedTo,
+      resolvedBy : ticket.resolvedBy,
+      status :ticket.status
+    }))
+    // console.log(agentData);
+
+    const agentPerformanceMap = {}
+    agentData.forEach(({agentId, resolvedBy, status})=>{
+      if(!agentPerformanceMap[agentId]){
+        agentPerformanceMap[agentId] = { assigned: 0, resolved: 0, pending: 0 }
+      }
+      agentPerformanceMap[agentId].assigned+=1;
+      if(status === "pending"){
+        agentPerformanceMap[agentId].pending+=1;
+      }
+      if(resolvedBy){
+        agentPerformanceMap[agentId].resolved+=1;
+      }
+    })
+    const cardData = agents.map((agent)=>{
+      const {assigned = 0, resolved = 0, pending = 0} = agentPerformanceMap[agent._id] || {};
+      return({
+        name: agent.username,
+        ticketsResolved: resolved,
+        ticketsPending: pending,
+        ticketsAssigned: assigned
+      })
+    })
+    // console.log(cardData);
+    setAgentPerformaceData(cardData);
+  };
+
+  const setMonthlyOrdersCard = ()=>{
+    const orderMap = {}
+    const monthlyOrders = orders.forEach((order)=>{
+      const monthName = dayjs(order.startDate).format("MMM");
+      if(!orderMap[monthName]){
+        orderMap[monthName] = 0;
+      }
+      orderMap[monthName]+=1;
+    })
+    // console.log(orderMap);
+    let formattedMonthlyData = [];
+    Object.keys(orderMap).map(month=>{
+      formattedMonthlyData.push({
+        month:month,
+        orders:orderMap[month]
+      })
+    })
+    // console.log("formatted monthly data : ",formattedMonthlyData);
+    setMonthlyOrdersData(formattedMonthlyData);
+  }
+
+  const setPlanDataCard = ()=>{
+    const planDataMap = {};
+    orders.map((order)=>{
+      if(!planDataMap[order.planName]){
+        planDataMap[order.planName] = 0;
+      }
+      planDataMap[order.planName]+=1;
+    })
+    // console.log("Plan Data Map : ", planDataMap);
+    const sortedPlans = Object.keys(planDataMap).sort((a,b)=>{
+      return planDataMap[b]-planDataMap[a]
+    })
+    // console.log("Sorted Plans : ", sortedPlans);
+    let topPlans = [];
+    sortedPlans.forEach((planName)=>{
+      topPlans.push({
+        plan:planName,
+        count:planDataMap[planName]
+      })
+    })
+    console.log("Top Plans : ", topPlans);
+    setMostSoldPlans(topPlans);
+  }
+
 
   return (
     <>
@@ -224,10 +184,11 @@ function Dashboard() {
       <div className="row mt-2">
         <div className="col-md-4">
           <Card
+            className="indexCard"
             variant="outlined"
-            style={{ backgroundColor: "black", color: "white", height: "8rem" }}
+            style={{ backgroundColor: "black", color: "white", height: "12rem" }}
           >
-            <CardContent>
+            <CardContent className="d-flex align-items-center justify-content-center flex-column p-2 mt-5">
               <Typography variant="h6" component="div">
                 Expired Accounts
               </Typography>
@@ -237,10 +198,11 @@ function Dashboard() {
         </div>
         <div className="col-md-4">
           <Card
+            className="indexCard"
             variant="outlined"
-            style={{ backgroundColor: "red", color: "white", height: "8rem" }}
+            style={{ backgroundColor: "red", color: "white", height: "12rem" }}
           >
-            <CardContent>
+            <CardContent className="d-flex align-items-center justify-content-center flex-column p-3 mt-5">
               <Typography variant="h6" component="div">
                 Expiring Today
               </Typography>
@@ -250,14 +212,15 @@ function Dashboard() {
         </div>
         <div className="col-md-4">
           <Card
+            className="indexCard"
             variant="outlined"
             style={{
               backgroundColor: "orange",
               color: "white",
-              height: "8rem",
+              height: "12rem",
             }}
           >
-            <CardContent>
+            <CardContent className="d-flex align-items-center justify-content-center flex-column p-2 mt-5">
               <Typography variant="h6" component="div">
                 Expiring in 3 Days
               </Typography>
@@ -310,16 +273,17 @@ function Dashboard() {
         </div>
         <div className="col-md-6">
           <Typography variant="h6" className="mt-3 d-inline-block">
-            Orders
+            Orders by Plan
           </Typography>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={ordersData}>
-              <XAxis dataKey="provider" tick={false} />
-              <YAxis />
+            <BarChart data={mostSoldPlans} barSize={20} barGap={1}>
+              <XAxis dataKey="plan" tick={false} />
+              <YAxis scale="linear" domain={[0, 'dataMax+1']} 
+              tickFormatter={(tick)=>Math.round(tick)}
+              allowDecimals={false}/> 
               <Tooltip />
               <Legend layout="vertical" />
-              <Bar dataKey="orders" fill="#8884d8" />
-              <Bar dataKey="serviceName" fill="red" />
+              <Bar dataKey="count" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -345,8 +309,8 @@ function Dashboard() {
           Agent Performance
         </Typography>
         <div className="col-md-12">
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={agentPerformaceData}>
+          <ResponsiveContainer width="100%" height={500}>
+            <BarChart data={agentPerformaceData} barSize={30}>
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
