@@ -114,3 +114,18 @@ export const deleteTicketAPI = async(id, header)=>{
 export const addAgentAPI = async(header, agentData)=>{
     return await commonAPI("POST", `${BASE_URL}/agents`, agentData, header);
 }
+
+//change agent password
+export const changeAgentPasswordAPI = async(header, agentData, id)=>{
+    return await commonAPI("PUT", `${BASE_URL}/agents/password-change/${id}`, agentData, header)
+}
+
+//update agent permissions
+export const updateAgentPermissionsAPI = async(header, agentData, id)=>{
+    return await commonAPI("PUT", `${BASE_URL}/agents/update-permissions/${id}`, agentData, header)
+}
+
+//delete agent
+export const deleteAgentAPI = async(id, header)=>{
+    return await commonAPI("DELETE", `${BASE_URL}/agents/delete/${id}`,{},header);
+}

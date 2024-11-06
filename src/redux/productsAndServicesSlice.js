@@ -13,13 +13,17 @@ export const fetchProductsServices = createAsyncThunk("productsAndServices/fetch
             }
             const response = await fetchProductsServicesAPI(headers);
             // console.log(response);
-            return response.data;
+            if(response.status === 200){
+                return response.data;
+            }else{
+                return rejectWithValue({message:response?.response?.data});
+            }
         }else{
-            return rejectWithValue('Unauthorised');
+            return rejectWithValue({message:'Unauthorised'});
         }   
     }catch(error){
         // console.log(error);
-        return rejectWithValue(error.response.data);
+        return rejectWithValue({message:"Something went wrong unable to fetch products/services"});
     }
 })
 
@@ -34,14 +38,18 @@ export const addProductsServices = createAsyncThunk("productsAndServices/add",as
                 'Authorization': `Bearer ${token}`
             }
             const response = await addProductsServicesAPI(newProductService, headers);
+            if(response.status === 200){
+                return response.data;
+            }else{
+                return rejectWithValue({message:response?.response?.data});
+            }
             // console.log(response);
-            return response.data;
         }else{
-            return rejectWithValue('Unauthorised');
+            return rejectWithValue({message:'Unauthorised'});
         }
     }catch(error){
         console.log(error);
-        return rejectWithValue(error.response.data);
+        return rejectWithValue({message:"Something went wrong unable to add product/service"});
     
     }
 })
@@ -56,13 +64,17 @@ export const editProductsServices = createAsyncThunk("productsAndServices/edit",
             }
             const {id, updatedProduct} = updateData;
             const response = await editProductsServicesAPI(updatedProduct, headers,id);
-            return response.data;
+            if(response.status === 200){
+                return response.data;
+            }else{
+                return rejectWithValue({message:response?.response?.data});
+            }
         }else{
-            return rejectWithValue('Unauthorised');
+            return rejectWithValue({message:'Unauthorised'});
         }
 
     }catch(error){
-        return rejectWithValue(error.response.data);
+        return rejectWithValue({message:"Something went wrong unable to update product/service"});
     }
 })
 
@@ -76,12 +88,16 @@ export const deleteProductsServices = createAsyncThunk("productsAndServices/dele
                 'Authorization': `Bearer ${token}`
             }
             const deleteResponse = await deleteProductsServicesAPI(id, headers);
-            return deleteResponse.data;
+            if(deleteResponse.status === 200){
+                return deleteResponse.data;
+            }else{
+                return rejectWithValue({message:deleteResponse?.response?.data});
+            }
         }else{
-            return rejectWithValue('Unauthorised');
+            return rejectWithValue({message:'Unauthorised'});
         }
     } catch (error) {
-        rejectWithValue(error.response.data)
+        return rejectWithValue({message:"Something went wrong unable to delete product/service"})
     }
 })
 
@@ -105,7 +121,8 @@ const productsAndServicesSlice  = createSlice({
         })
         .addCase(fetchProductsServices.rejected, (state, action)=>{
             state.status ='failed';
-            state.error = action.payload;
+            state.error = action.payload?.message;
+            toast.error(action.payload?.message, {position:"top-center"})
         })
         .addCase(addProductsServices.pending, (state)=>{
             state.status = 'loading';
@@ -119,8 +136,8 @@ const productsAndServicesSlice  = createSlice({
         })
         .addCase(addProductsServices.rejected, (state, action)=>{
             state.status = 'failed';
-            state.error = action.payload;
-            toast.error(action.payload.message, {position:"top-center"});
+            state.error = action.payload?.message;
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(editProductsServices.pending, (state)=>{
             state.status = 'loading';
@@ -133,8 +150,8 @@ const productsAndServicesSlice  = createSlice({
         })
         .addCase(editProductsServices.rejected, (state, action)=>{
             state.status = 'failed';
-            state.error = action.error.message;
-            toast.error(action.error.message, {position:"top-center"});
+            state.error = action.payload?.message;
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(deleteProductsServices.pending, (state)=>{
             state.status = 'loading';
@@ -146,8 +163,8 @@ const productsAndServicesSlice  = createSlice({
         })
         .addCase(deleteProductsServices.rejected, (state, action)=>{
             state.status = 'failed';
-            state.error = action.error.message;
-            toast.error(action.error.message, {position:"top-center"});
+            state.error = action.payload?.message;
+            toast.error(action.payload?.message, {position:"top-center"});
         })
     }
 })

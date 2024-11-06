@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { assignAgentAPI, createSupportTicketAPI, fetchSupportTicketsAPI, addCommentToSupportTicketAPI, changeSupportTicketStatusAPI, deleteTicketAPI } from '../services/allAPI';
 import { toast } from 'react-toastify';
 
-export const addTicket = createAsyncThunk('tickets/addTicket', async(ticketData, {rejectedWithValue})=>{
+export const addTicket = createAsyncThunk('tickets/addTicket', async(ticketData, {rejectWithValue})=>{
     if(sessionStorage.getItem('userData')){
         const token = JSON.parse(sessionStorage.getItem('userData')).token;
         const headers = {
@@ -16,14 +16,14 @@ export const addTicket = createAsyncThunk('tickets/addTicket', async(ticketData,
             
             return response.data;
         }else{
-            return rejectedWithValue(response.data.message);
+            return rejectWithValue({message:response?.response?.data});
         }
     }else{
-        return rejectedWithValue('User not logged in');
+        return rejectWithValue({message:'User not logged in'});
     }
 })
 
-export const fetchTickets = createAsyncThunk('tickets/fetchTickets', async(_, {rejectedWithValue})=>{
+export const fetchTickets = createAsyncThunk('tickets/fetchTickets', async(_, {rejectWithValue})=>{
     if(sessionStorage.getItem('userData')){
         const token = JSON.parse(sessionStorage.getItem('userData')).token;
         const headers = {
@@ -34,14 +34,14 @@ export const fetchTickets = createAsyncThunk('tickets/fetchTickets', async(_, {r
         if(response.status === 200){
             return response.data;
         }else{
-            return rejectedWithValue(response.data.message);
+            return rejectWithValue({message:response?.response?.data});
         }
     }else{
-        return rejectedWithValue('User not logged in');
+        return rejectWithValue({message:'User not logged in'});
     }
 })
 
-export const addComment = createAsyncThunk('tickets/addComment', async(commentData, {rejectedWithValue})=>{
+export const addComment = createAsyncThunk('tickets/addComment', async(commentData, {rejectWithValue})=>{
     if(sessionStorage.getItem('userData')){
         const token = JSON.parse(sessionStorage.getItem('userData')).token;
         const headers = {
@@ -56,14 +56,14 @@ export const addComment = createAsyncThunk('tickets/addComment', async(commentDa
         if(response.status === 201){
             return response.data;
         }else{
-            rejectedWithValue(response.data.message);
+            return rejectWithValue({message:response?.response?.data});
         }
     }else{
-        return rejectedWithValue('User not logged in');
+        return rejectWithValue({message:'User not logged in'});
     }
 });
 
-export const changeTicketStatus = createAsyncThunk('tickets/changeTicketStatus', async(ticketData, {rejectedWithValue})=>{
+export const changeTicketStatus = createAsyncThunk('tickets/changeTicketStatus', async(ticketData, {rejectWithValue})=>{
     if(sessionStorage.getItem('userData')){
         const token = JSON.parse(sessionStorage.getItem('userData')).token;
         const headers = {
@@ -76,14 +76,14 @@ export const changeTicketStatus = createAsyncThunk('tickets/changeTicketStatus',
         if(response.status === 200){
             return response.data;
         }else{
-            return rejectedWithValue(response.data.message);
+            return rejectWithValue({message:response?.response?.data});
         }
     }else{
-        return rejectedWithValue('User not logged in');
+        return rejectWithValue({message:'User not logged in'});
     }
 })
 
-export const assignAgent = createAsyncThunk('tickets/assignAgent', async({agentId, ticketId}, {rejectedWithValue})=>{
+export const assignAgent = createAsyncThunk('tickets/assignAgent', async({agentId, ticketId}, {rejectWithValue})=>{
     // console.log("Inside assign agent thunk");
     try{
         if(sessionStorage.getItem('userData')){
@@ -97,19 +97,19 @@ export const assignAgent = createAsyncThunk('tickets/assignAgent', async({agentI
                 return response.data;
             }else{
                 // toast.error("Unable to assign agent");
-                return rejectedWithValue("Unable to assign agent");
+                return rejectWithValue({message:response?.response?.data});
             }
         }else{
             // console.log("User not logged in");
-            return rejectedWithValue('User not logged in');
+            return rejectWithValue({message:'User not logged in'});
         }
     }catch(error){
         console.log(error);
-        rejectedWithValue(error);
+        return rejectWithValue({message:"Something went wrong unable to assign agent"})
     }
 })
 
-export const deleteTicket = createAsyncThunk('tickets/deleteTicket', async(ticketId, {rejectedWithValue})=>{
+export const deleteTicket = createAsyncThunk('tickets/deleteTicket', async(ticketId, {rejectWithValue})=>{
     if(sessionStorage.getItem('userData')){
         const token = JSON.parse(sessionStorage.getItem('userData')).token;
         const headers = {
@@ -120,10 +120,10 @@ export const deleteTicket = createAsyncThunk('tickets/deleteTicket', async(ticke
         if(response.status === 200){
             return response.data;
         }else{
-            return rejectedWithValue("unable to delete ticket");
+            return rejectWithValue({message:response?.response?.data});
         }
     }else{
-        return rejectedWithValue('User not logged in');
+        return rejectWithValue({message:'User not logged in'});
     }
 })
 
@@ -148,8 +148,8 @@ const ticketSlice = createSlice({
         })
         .addCase(addTicket.rejected, (state, action)=>{
             state.status = 'rejected'
-            state.error = action.error.message
-            toast.error(action.error.message, {position:"top-center"});
+            state.error = action.payload?.message
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(fetchTickets.pending, (state)=>{
             state.status = 'loading'
@@ -160,8 +160,8 @@ const ticketSlice = createSlice({
         })
         .addCase(fetchTickets.rejected, (state, action)=>{
             state.status = 'rejected'
-            state.error = action.error.message
-            toast.error(action.error.message, {position:"top-center"});
+            state.error = action.payload?.message
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(addComment.pending, (state)=>{
             state.status = 'loading'
@@ -177,8 +177,8 @@ const ticketSlice = createSlice({
         })
         .addCase(addComment.rejected, (state, action)=>{
             state.status = 'rejected'
-            state.error = action.error.message
-            toast.error(action.error.message, {position:"top-center"});
+            state.error = action.payload?.message
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(changeTicketStatus.pending, (state)=>{
             state.status = "loading"
@@ -194,8 +194,8 @@ const ticketSlice = createSlice({
         })
         .addCase(changeTicketStatus.rejected, (state, action)=>{
             state.status = "rejected"
-            state.error = action.error.message
-            toast.error(action.error.message, {position:"top-center"});
+            state.error = action.payload?.message
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(assignAgent.pending, (state)=>{
             state.status = 'loading';
@@ -211,9 +211,9 @@ const ticketSlice = createSlice({
         })
         .addCase(assignAgent.rejected, (state, action)=>{
             state.status = 'rejected';
-            state.error = action.error.message;
+            state.error = action.payload?.message;
             // console.log(action.error);
-            toast.error("Could not assign agent", {position:"top-center"});
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(deleteTicket.pending, (state)=>{
             state.status = 'loading';
@@ -226,6 +226,11 @@ const ticketSlice = createSlice({
             });
             state.tickets.splice(ticketIndex, 1);
             toast.success('Ticket deleted successfully', {position:"top-center"});
+        })
+        .addCase(deleteTicket.rejected, (state, action)=>{
+            state.status = 'rejected';
+            state.error = action.payload?.message;
+            toast.error(action.payload?.message, {position:"top-center"});
         })
     }
 })

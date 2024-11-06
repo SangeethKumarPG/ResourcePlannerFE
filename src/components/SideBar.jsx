@@ -29,7 +29,8 @@ function SideBar({ setSelectedView, setIsCollapsed, isCollapsed }) {
   const handleToggleSidebar = () => {
     setIsCollapsed((prev) => !prev); 
     setTimeout(()=>{
-      setIsCollapsed((prev) => !prev);
+      // setIsCollapsed((prev) => !prev);
+      setIsCollapsed(true);
     }, 3000);
   };
 

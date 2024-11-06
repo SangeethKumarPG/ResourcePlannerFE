@@ -11,12 +11,16 @@ export const fetchCustomers = createAsyncThunk('customers/fetchCustomers', async
         }
         try{
             const response = await fetchCustomersAPI(headers);
-            return response.data;
+            if(response.status === 200){
+                return response.data;
+            }else{
+                return rejectWithValue({message:response?.response?.data});
+            }
         }catch(error){
-            rejectWithValue(error.response.data)
+            return rejectWithValue({message:"Somthing went wrong, unable to fetch customers"});
         }
     }else{
-        rejectWithValue("Unauthorized");
+        rejectWithValue({message:"Unauthorized"});
     }
 })
 
@@ -29,12 +33,18 @@ export const addCustomer = createAsyncThunk('customers/addCustomer', async(custo
         }
         try{
             const response = await addCustomerAPI(customer, headers);
+            if(response.status === 200){
+                return response.data;
+            }else{
+                return rejectWithValue({message:response?.response?.data});
+            }
+
             return response.data;
         }catch(error){
-            rejectWithValue(error.response.data)
+            return rejectWithValue({message:"Something went wrong, unable to add customer"})
         }
     }else{
-        rejectWithValue("Unauthorized");
+        return rejectWithValue({message:"Unauthorized"});
     }
 })
 
@@ -49,12 +59,18 @@ export const editCustomer = createAsyncThunk('customers/editCustomer', async(cus
             const {_id} = customer;
             // console.log("Id inside edit customer thunk",_id);
             const response = await editCustomerAPI(customer, headers, _id);
-            return response.data;
+            if(response.status === 200){
+                return response.data;
+            }
+            else{
+                console.log(response?.response)
+                return rejectWithValue({message:response?.response?.data});
+            }
         }catch(error){
-            rejectWithValue(error.response.data)
+            return rejectWithValue({message:"Something went wrong, unable to edit customer"})
         }
     }else{
-        rejectWithValue("Unauthorized");
+        return rejectWithValue({message:"Unauthorized"});
     }
 })
 
@@ -67,12 +83,18 @@ export const deleteCustomer = createAsyncThunk('customers/deleteCustomer', async
         }
         try{
             const response = await deleteCustomerAPI(customerId, headers);
-            return response.data;
+            if(response.status === 200){
+                return response.data;
+            }else{
+                // console.log(response?.response?.data);
+                return rejectWithValue({message:response?.response?.data});
+            }
+            
         }catch(error){
-            rejectWithValue(error.response.data)
+            return rejectWithValue({message:"Something went wrong, unable to delete customer"})
         }
     }else{
-        rejectWithValue("Unauthorized");
+        return rejectWithValue({message:"Unauthorized"});
     }
 })
 
@@ -96,8 +118,8 @@ const customerSlice = createSlice({
         })
         .addCase(fetchCustomers.rejected, (state, action)=>{
             state.status ='rejected';
-            state.error = action.payload;
-            toast.error(action.payload);
+            state.error = action.payload?.message;
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(addCustomer.pending, (state)=>{
             state.status = 'loading';
@@ -109,8 +131,8 @@ const customerSlice = createSlice({
         })
         .addCase(addCustomer.rejected, (state, action)=>{
             state.status = 'rejected';
-            state.error = action.payload;
-            toast.error("Error : ",action.payload, {position:"top-center"});
+            state.error = action.payload?.message;
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(editCustomer.pending, (state)=>{
             state.status = 'loading';
@@ -126,8 +148,8 @@ const customerSlice = createSlice({
         })
         .addCase(editCustomer.rejected, (state, action)=>{
             state.status = 'rejected';
-            state.error = action.payload;
-            toast.error("Error : ",action.payload, {position:"top-center"});
+            state.error = action.payload?.message;
+            toast.error(action.payload?.message, {position:"top-center"});
         })
         .addCase(deleteCustomer.pending, (state)=>{
             state.status = 'loading';
@@ -143,8 +165,8 @@ const customerSlice = createSlice({
         })
         .addCase(deleteCustomer.rejected, (state, action)=>{
             state.status = 'rejected';
-            state.error = action.payload;
-            toast.error("Error : ",action.payload, {position:"top-center"});
+            state.error = action.payload.message;
+            toast.error(`Error: ${action.payload.message}`, {position:"top-center"});
         })
     }
 })

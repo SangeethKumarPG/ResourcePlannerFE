@@ -12,14 +12,14 @@ function Settings() {
         <AgentInfo/>
       </div>
      </div>
-     <div className="row mt-2">
+     {/* <div className="row mt-2">
       <div className="col-md-6">
         <ExportUserData/>
       </div>
       <div className="col-md-6">
         <ImportUserData/>
       </div>
-     </div>
+     </div> */}
    </>
   )
 }

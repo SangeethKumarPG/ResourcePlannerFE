@@ -17,85 +17,90 @@ import Box from "@mui/material/Box";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import TrashIcon from "@mui/icons-material/Delete";
 import { toast } from "react-toastify";
-import {useDispatch} from "react-redux";
+import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
-import { fetchAgents, addAgent } from "../redux/agentSlice";
+import {
+  fetchAgents,
+  addAgent,
+  changeAgentPassword,
+  updateAgentPermission,
+  deleteAgent,
+} from "../redux/agentSlice";
 
-const initialAgents = [
-  {
-    id: 1,
-    name: "John Doe",
-    contactNumber: "123-456-7890",
-    email: "john.doe@example.com",
-    ticketsResolved: 25,
-    ticketsPending: 5,
-    ticketsAssigned: 10,
-    permissions: {
-      orders: { read: true, write: true, delete: false },
-      customers: { read: true, write: false, delete: false },
-      productsAndServices: { read: true, write: false, delete: false },
-      supportTicketsAll: false,
-    },
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    contactNumber: "987-654-3210",
-    email: "jane.smith@example.com",
-    ticketsResolved: 30,
-    ticketsPending: 2,
-    ticketsAssigned: 12,
-    permissions: {
-      orders: { read: true, write: false, delete: true },
-      customers: { read: true, write: true, delete: true },
-      productsAndServices: { read: true, write: true, delete: false },
-      supportTicketsAll: true,
-    },
-  },
-];
+// const initialAgents = [
+//   {
+//     id: 1,
+//     name: "John Doe",
+//     contactNumber: "123-456-7890",
+//     email: "john.doe@example.com",
+//     ticketsResolved: 25,
+//     ticketsPending: 5,
+//     ticketsAssigned: 10,
+//     permissions: {
+//       orders: { read: true, write: true, delete: false },
+//       customers: { read: true, write: false, delete: false },
+//       productsAndServices: { read: true, write: false, delete: false },
+//       supportTicketsAll: false,
+//     },
+//   },
+//   {
+//     id: 2,
+//     name: "Jane Smith",
+//     contactNumber: "987-654-3210",
+//     email: "jane.smith@example.com",
+//     ticketsResolved: 30,
+//     ticketsPending: 2,
+//     ticketsAssigned: 12,
+//     permissions: {
+//       orders: { read: true, write: false, delete: true },
+//       customers: { read: true, write: true, delete: true },
+//       productsAndServices: { read: true, write: true, delete: false },
+//       supportTicketsAll: true,
+//     },
+//   },
+// ];
 
 function AgentInfo() {
   const dispatch = useDispatch();
-  const allAgents = useSelector((state)=>state.agents.agents)
-  const [agents, setAgents] = useState(initialAgents);
-  const [editAgentId, setEditAgentId] = useState(null);
-  useEffect(()=>{
+  const allAgents = useSelector((state) => state.agents.agents);
+  // const [agents, setAgents] = useState(initialAgents);
+  const [editedPermissions, setEditedPermissions] = useState({});
+  const [editAgentId, setEditAgentId] = useState(false);
+  useEffect(() => {
     dispatch(fetchAgents());
-  },[dispatch])
-  console.log(allAgents);
+  }, [dispatch]);
+  // console.log(allAgents);
 
   const handlePermissionChange = (agentId, category, permission) => (event) => {
-    setAgents((prevAgents) =>
-      prevAgents.map((agent) =>
-        agent.id === agentId
-          ? {
-              ...agent,
-              permissions: {
-                ...agent.permissions,
-                [category]: {
-                  ...agent.permissions[category],
-                  [permission]: event.target.checked,
-                },
-              },
-            }
-          : agent
-      )
-    );
+    const updatedPermissions = {
+      ...editedPermissions,
+      [category]: {
+        ...editedPermissions[category],
+        [permission]: event.target.checked,
+      },
+    };
+  
+    setEditedPermissions(updatedPermissions);
+    // console.log("Updated Permissions State:", updatedPermissions);
   };
 
   const handleEditClick = (agentId) => {
-    setEditAgentId(agentId);
+    setEditAgentId(true);
+    const currentAgent = allAgents.find((agent) => agent._id === agentId);
+    setEditedPermissions({...currentAgent.permissions});
   };
 
-  const handleSaveClick = () => {
-    setEditAgentId(null);
+  const handleSaveClick = (agentId) => {
+
+    dispatch(updateAgentPermission({agentId:agentId, permissions:editedPermissions }));
+    setEditAgentId(false);
+    setEditedPermissions({});
   };
 
   const [addAgentDialog, setAddAgentDialog] = useState(false);
   const handleAddAgentClick = () => {
     setAddAgentDialog(true);
   };
-  
 
   const [userName, setUserName] = useState("");
   const [contactNumber, setContactNumber] = useState("");
@@ -111,135 +116,135 @@ function AgentInfo() {
   const [contactNumberError, setContactNumberError] = useState(false);
   const [emailError, setEmailError] = useState(false);
 
-  const handleUserNameChange = (event)=>{
+  const handleUserNameChange = (event) => {
     event.preventDefault();
     const username = event.target.value;
-    console.log(username);
-    if(/^[a-zA-Z0-9]+$/.test(username)){
+    // console.log(username);
+    if (/^[a-zA-Z0-9]+$/.test(username)) {
       setUserName(username);
       setUserNameError(false);
-    }else{
+    } else {
       setUserNameError(true);
     }
-  }
+  };
 
-  const handleEmailChange = (event)=>{
+  const handleEmailChange = (event) => {
     event.preventDefault();
     const email = event.target.value;
-    if(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)){
+    if (/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
       setEmail(email);
       setEmailError(false);
-    }else{
+    } else {
       setEmailError(true);
     }
-  }
+  };
 
-  const handleContactNumberChange = (event)=>{
+  const handleContactNumberChange = (event) => {
     event.preventDefault();
     const contactNumber = event.target.value;
-    if(/^[0-9]{10}$/.test(contactNumber)){
+    if (/^[0-9]{10}$/.test(contactNumber)) {
       setContactNumber(contactNumber);
       setContactNumberError(false);
-    }else{
+    } else {
       setContactNumberError(true);
     }
-  }
+  };
 
-  const setInitialPermissions = (event)=>{
+  const setInitialPermissions = (event) => {
     event.preventDefault();
-    switch(event.target.id){
+    switch (event.target.id) {
       case "order-permission-read-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           orders: {
-           ...permissions.orders,
+            ...permissions.orders,
             read: event.target.checked,
           },
         });
         break;
       case "customer-permission-read-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           customers: {
-           ...permissions.customers,
+            ...permissions.customers,
             read: event.target.checked,
           },
         });
         break;
       case "product-permission-read-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           productsAndServices: {
-           ...permissions.productsAndServices,
+            ...permissions.productsAndServices,
             read: event.target.checked,
           },
         });
         break;
       case "order-permission-write-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           orders: {
-           ...permissions.orders,
+            ...permissions.orders,
             write: event.target.checked,
           },
         });
         break;
       case "customer-permission-write-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           customers: {
-           ...permissions.customers,
+            ...permissions.customers,
             write: event.target.checked,
           },
         });
         break;
       case "product-permission-write-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           productsAndServices: {
-           ...permissions.productsAndServices,
+            ...permissions.productsAndServices,
             write: event.target.checked,
           },
         });
         break;
       case "order-permission-delete-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           orders: {
-           ...permissions.orders,
+            ...permissions.orders,
             delete: event.target.checked,
           },
         });
         break;
       case "customer-permission-delete-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           customers: {
-           ...permissions.customers,
+            ...permissions.customers,
             delete: event.target.checked,
           },
         });
         break;
       case "product-permission-delete-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           productsAndServices: {
-           ...permissions.productsAndServices,
+            ...permissions.productsAndServices,
             delete: event.target.checked,
           },
         });
         break;
       case "support-ticket-all-permission-new":
         setPermissions({
-         ...permissions,
+          ...permissions,
           supportTicketsAll: event.target.checked,
         });
         break;
       default:
         break;
     }
-    console.log(permissions);
-  }
+    // console.log(permissions);
+  };
 
   const handleAddAgentClose = () => {
     setAddAgentDialog(false);
@@ -259,23 +264,84 @@ function AgentInfo() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if(userNameError || contactNumberError || emailError){
+    if (userNameError || contactNumberError || emailError) {
       toast.error("Please enter valid details");
       return;
     }
-    if(userName === "" || contactNumber === "" || email === ""){
+    if (userName === "" || contactNumber === "" || email === "") {
       toast.error("Please enter all required fields");
       return;
     }
-    console.log(contactNumber);
+    // console.log(contactNumber);
     const newAgent = {
-      username : userName,
-      email : email,
-      contactNumber : contactNumber,
-      permissions : permissions
-    }
+      username: userName,
+      email: email,
+      contactNumber: contactNumber,
+      permissions: permissions,
+    };
     dispatch(addAgent(newAgent));
     handleAddAgentClose();
+  };
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [currentPasswordError, setCurrentPasswordError] = useState(false);
+  const [newPasswordError, setNewPasswordError] = useState(false);
+  const [confirmPasswordError, setConfirmPasswordError] = useState(false);
+
+  const handleCurrentPasswordChange = (event) => {
+    event.preventDefault();
+    const currentPassword = event.target.value;
+    if (currentPassword === "") {
+      setCurrentPasswordError(true);
+    } else {
+      setCurrentPassword(currentPassword);
+      setCurrentPasswordError(false);
+    }
+  };
+  const handleNewPasswordChange = (event) => {
+    event.preventDefault();
+    const newPassword = event.target.value;
+    if (/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{12,20}$/.test(newPassword)) {
+      setNewPassword(newPassword);
+      setNewPasswordError(false);
+    } else {
+      setNewPasswordError(true);
+    }
+  };
+
+  const handleConfirmPasswordChange = (event) => {
+    event.preventDefault();
+    const confirmPassword = event.target.value;
+    if (confirmPassword === "" || confirmPassword !== newPassword) {
+      setConfirmPasswordError(true);
+    } else {
+      setConfirmPassword(confirmPassword);
+      setConfirmPasswordError(false);
+    }
+  };
+
+  const handlePasswordReset = (event, agentId) => {
+    event.preventDefault();
+    if (currentPasswordError || newPasswordError || confirmPasswordError) {
+      toast.error("Please enter valid details");
+      return;
+    } else {
+      // console.log(currentPassword, newPassword, confirmPassword);
+      // console.log(agentId);
+      dispatch(changeAgentPassword({ agentId, currentPassword, newPassword }));
+    }
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setCurrentPasswordError(false);
+    setNewPasswordError(false);
+    setConfirmPasswordError(false);
+  };
+
+  const handleDeleteClick = (agentId) => {
+    dispatch(deleteAgent(agentId));
   }
 
   return (
@@ -299,7 +365,7 @@ function AgentInfo() {
           onClick={handleAddAgentClick}
         />
       </Box>
-      {allAgents?.map((agent,index) => (
+      {allAgents?.map((agent, index) => (
         <Accordion key={agent._id} className="my-2">
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box
@@ -308,25 +374,28 @@ function AgentInfo() {
               width={"100%"}
               flex={"wrap"}
             >
-              <Typography className="me-2" variant="h6">{index+1}</Typography>
-              <Typography className="me-2" variant="h6">{`Agent Name: ${agent.username}`}</Typography>
+              {/* <Typography className="me-2" variant="h6">{index+1}</Typography> */}
+              <Typography
+                className="me-2"
+                variant="h6"
+              >{`${agent.username}`}</Typography>
             </Box>
           </AccordionSummary>
           <AccordionDetails>
             <Box
               display={"flex"}
-              justifyContent={"centerspaced-between"}
+              justifyContent={"space-between"}
               width={"100%"}
               className="mt-1 mb-3"
             >
               <Typography
                 className="me-2"
                 variant="body1"
-              >{`Contact Number:${agent.contactNumber}`}</Typography>
-              <Typography variant="body1">{`Email : ${agent.email}`}</Typography>
+              >{`Contact Number:${agent?.contactNumber ? agent.contactNumber : "N/A"}`}</Typography>
+              <Typography variant="body1">{`Email : ${agent?.email ? agent.email : "N/A"}`}</Typography>
             </Box>
 
-            <Box
+            {/* <Box
               display={"flex"}
               justifyContent={"space-between"}
               width={"100%"}
@@ -334,7 +403,7 @@ function AgentInfo() {
               <Typography>{`Tickets Resolved: `}</Typography>
               <Typography>{`Tickets Pending: `}</Typography>
               <Typography>{`Tickets Assigned: `}</Typography>
-            </Box>
+            </Box> */}
             <Box
               display={"flex"}
               justifyContent={"space-between"}
@@ -347,9 +416,9 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`order-permission-read-${agent._id}`}
-                  checked={agent.permissions.orders.read}
+                  checked={editAgentId ? editedPermissions.orders.read : agent.permissions.orders.read}
                   onChange={handlePermissionChange(agent.id, "orders", "read")}
-                  disabled={editAgentId !== agent._id}
+                  disabled={!editAgentId}
                 />
               </div>
               <div>
@@ -358,13 +427,13 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`customer-permission-read-${agent._id}`}
-                  checked={agent.permissions.customers.read}
+                  checked={editAgentId ? editedPermissions.customers.read : agent.permissions.customers.read}
                   onChange={handlePermissionChange(
                     agent.id,
                     "customers",
                     "read"
                   )}
-                  disabled={editAgentId !== agent._id}
+                  disabled={!editAgentId}
                 />
               </div>
               <div>
@@ -373,13 +442,13 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`product-permission-read-${agent._id}`}
-                  checked={agent.permissions.productsAndServices.read}
+                  checked={editAgentId ? editedPermissions.productsAndServices.read : agent.permissions.productsAndServices.read }
                   onChange={handlePermissionChange(
                     agent.id,
                     "productsAndServices",
                     "read"
                   )}
-                  disabled={editAgentId !== agent._id}
+                  disabled={!editAgentId}
                 />
               </div>
             </Box>
@@ -396,9 +465,13 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`order-permission-write-${agent._id}`}
-                  checked={agent.permissions.orders.write}
-                  onChange={handlePermissionChange(agent._id, "orders", "write")}
-                  disabled={editAgentId !== agent._id}
+                  checked={editAgentId? editedPermissions.orders.write : agent.permissions.orders.write}
+                  onChange={handlePermissionChange(
+                    agent._id,
+                    "orders",
+                    "write"
+                  )}
+                  disabled={!editAgentId}
                 />
               </div>
               <div>
@@ -407,13 +480,13 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`customer-permission-write-${agent._id}`}
-                  checked={agent.permissions.customers.write}
+                  checked={editAgentId ? editedPermissions.customers.write : agent.permissions.customers.write }
                   onChange={handlePermissionChange(
                     agent._id,
                     "customers",
                     "write"
                   )}
-                  disabled={editAgentId !== agent._id}
+                  disabled={!editAgentId}
                 />
               </div>
               <div>
@@ -422,13 +495,13 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`product-permission-write-${agent._id}`}
-                  checked={agent.permissions.productsAndServices.write}
+                  checked={editAgentId? editedPermissions.productsAndServices.write : agent.permissions.productsAndServices.write }
                   onChange={handlePermissionChange(
                     agent._id,
                     "productsAndServices",
                     "write"
                   )}
-                  disabled={editAgentId !== agent._id}
+                  disabled={!editAgentId}
                 />
               </div>
             </Box>
@@ -445,13 +518,13 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`order-permission-delete-${agent._id}`}
-                  checked={agent.permissions.orders.delete}
+                  checked={editAgentId? editedPermissions?.orders?.delete: agent.permissions.orders.delete}
                   onChange={handlePermissionChange(
                     agent._id,
                     "orders",
                     "delete"
                   )}
-                  disabled={editAgentId !== agent._id}
+                  disabled={!editAgentId}
                 />
               </div>
               <div>
@@ -460,13 +533,13 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`customer-permission-delete-${agent._id}`}
-                  checked={agent.permissions.customers.delete}
+                  checked={editAgentId? editedPermissions?.customers?.delete: agent.permissions.customers.delete }
                   onChange={handlePermissionChange(
                     agent._id,
                     "customers",
                     "delete"
                   )}
-                  disabled={editAgentId !== agent._id}
+                  disabled={!editAgentId}
                 />
               </div>
               <div>
@@ -475,13 +548,13 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`product-permission-delete-${agent._id}`}
-                  checked={agent.permissions.productsAndServices.delete}
+                  checked={editAgentId? editedPermissions?.productsAndServices?.delete: agent.permissions.productsAndServices.delete }
                   onChange={handlePermissionChange(
                     agent._id,
                     "productsAndServices",
                     "delete"
                   )}
-                  disabled={editAgentId !== agent._id}
+                  disabled={!editAgentId}
                 />
               </div>
             </Box>
@@ -498,45 +571,132 @@ function AgentInfo() {
                 </Typography>
                 <Checkbox
                   id={`support-ticket-all-permission-${agent._id}`}
-                  checked={agent.permissions.supportTickets}
+                  checked={ editAgentId ? editedPermissions.supportTickets : agent.permissions.supportTickets}
                   onChange={handlePermissionChange(
                     agent._id,
                     "supportTickets",
                     "supportTickets"
                   )}
-                  disabled={editAgentId !== agent._id}
+                  disabled={!editAgentId}
                 />
               </div>
             </Box>
 
             <Box display={"flex"} justifyContent={"center"} className="mt-2">
-              {editAgentId === agent.id ? (
-                <Button variant="contained" onClick={handleSaveClick}>
+              {editAgentId ? (
+                <Button variant="contained" onClick={()=>handleSaveClick(agent._id)}>
                   Save Permissions
                 </Button>
               ) : (
-                <Button
-                  variant="contained"
-                  onClick={() => handleEditClick(agent.id)}
-                >
+                <Button variant="contained" onClick={()=>handleEditClick(agent._id)}>
                   Update Permissions
                 </Button>
               )}
-              {editAgentId !== agent._id && (
-                <Button
-                  variant="outlined"
-                  startIcon={<TrashIcon />}
-                  className="ms-2"
-                  sx={{
-                    "&:hover": {
-                      backgroundColor: "red",
-                      color: "white",
-                    },
-                    color: "red",
-                  }}
-                />
-              )}
+
+              <Button
+                variant="outlined"
+                startIcon={<TrashIcon />}
+                className="ms-2"
+                sx={{
+                  "&:hover": {
+                    backgroundColor: "red",
+                    color: "white",
+                  },
+                  color: "red",
+                }}
+                onClick={()=>handleDeleteClick(agent._id)}
+              />
             </Box>
+            <Accordion className="mt-2">
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography className="me-2" variant="h6">
+                  ChangePassword
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box
+                  display={"flex"}
+                  justifyContent={"space-evenly"}
+                  sx={{
+                    flexDirection: {
+                      xs: "column",
+                      sm: "row",
+                    },
+                  }}
+                >
+                  <Box display={"flex"} flexDirection={"column"}>
+                    <TextField
+                      label="Current Password"
+                      className="mt-2"
+                      variant="outlined"
+                      type="password"
+                      fullWidth
+                      onChange={handleCurrentPasswordChange}
+                    />
+                    {currentPasswordError && (
+                      <p className="text-danger">
+                        Please enter a valid current password
+                      </p>
+                    )}
+                  </Box>
+                  <Box display={"flex"} flexDirection={"column"}>
+                    <TextField
+                      label="New Password"
+                      className="mt-2"
+                      variant="outlined"
+                      type="password"
+                      fullWidth
+                      onChange={handleNewPasswordChange}
+                    />
+                    {newPasswordError && (
+                      <p className="text-danger">
+                        invalid new password, add a strong password
+                      </p>
+                    )}
+                  </Box>
+                  <Box display={"flex"} flexDirection={"column"}>
+                    <TextField
+                      label="Confirm Password"
+                      className="mt-2"
+                      variant="outlined"
+                      type="password"
+                      fullWidth
+                      onChange={handleConfirmPasswordChange}
+                    />
+                    {confirmPasswordError && (
+                      <p className="text-danger">Passwords do not match</p>
+                    )}
+                  </Box>
+                  <Box
+                    sx={{
+                      marginTop: {
+                        xs: "10px",
+                        sm: "0px",
+                      },
+                      padding: {
+                        sm: "10px 0px",
+                      },
+                    }}
+                  >
+                    <Button
+                      variant="contained"
+                      label="save"
+                      fullWidth
+                      disabled={
+                        currentPasswordError ||
+                        newPasswordError ||
+                        confirmPasswordError
+                      }
+                      onClick={(e) => {
+                        handlePasswordReset(e, agent._id);
+                      }}
+                    >
+                      UPDATE PASSWORD
+                    </Button>
+                  </Box>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
           </AccordionDetails>
         </Accordion>
       ))}
@@ -549,12 +709,19 @@ function AgentInfo() {
         <DialogContent>
           <DialogContentText>
             To add a new support agent, please enter their name, contact number,
-            email, and any initial permissions. A password will be generated and sent to the agent's email
+            email, and any initial permissions. A password will be generated and
+            sent to the agent's email
           </DialogContentText>
-          <TextField label="User Name" fullWidth className="mt-2" required 
-          onChange={handleUserNameChange}
+          <TextField
+            label="User Name"
+            fullWidth
+            className="mt-2"
+            required
+            onChange={handleUserNameChange}
           />
-          {userNameError && <p className="text-danger">Please enter a valid user name</p>}
+          {userNameError && (
+            <p className="text-danger">Please enter a valid user name</p>
+          )}
           <TextField
             label="Contact Number"
             fullWidth
@@ -562,9 +729,19 @@ function AgentInfo() {
             required
             onChange={handleContactNumberChange}
           />
-          {contactNumberError && <p className="text-danger">Please enter a valid contact number</p>}
-          <TextField label="Email" fullWidth className="mt-2" required onChange={handleEmailChange}/>
-          {emailError && <p className="text-danger">Please enter a valid email</p>}
+          {contactNumberError && (
+            <p className="text-danger">Please enter a valid contact number</p>
+          )}
+          <TextField
+            label="Email"
+            fullWidth
+            className="mt-2"
+            required
+            onChange={handleEmailChange}
+          />
+          {emailError && (
+            <p className="text-danger">Please enter a valid email</p>
+          )}
           <Box
             display={"flex"}
             justifyContent={"space-between"}
@@ -572,45 +749,81 @@ function AgentInfo() {
           >
             <div>
               <p className="me-0 d-inline-block">Orders Read</p>
-              <Checkbox id="order-permission-read-new" checked={permissions.orders.read} onChange={setInitialPermissions}/>
+              <Checkbox
+                id="order-permission-read-new"
+                checked={permissions.orders.read}
+                onChange={setInitialPermissions}
+              />
             </div>
             <div>
               <p className="me-0 d-inline-block">Customers Read</p>
-              <Checkbox id="customer-permission-read-new" checked={permissions.customers.read} onChange={setInitialPermissions}/>
+              <Checkbox
+                id="customer-permission-read-new"
+                checked={permissions.customers.read}
+                onChange={setInitialPermissions}
+              />
             </div>
             <div>
               <p className="me-0 d-inline-block">Products and Services Read</p>
-              <Checkbox id="product-permission-read-new" checked={permissions.productsAndServices.read} onChange={setInitialPermissions}/>
+              <Checkbox
+                id="product-permission-read-new"
+                checked={permissions.productsAndServices.read}
+                onChange={setInitialPermissions}
+              />
             </div>
           </Box>
           <Box display={"flex"} justifyContent={"space-between"}>
             <div>
               <p className="me-0 d-inline-block">Orders Write</p>
-              <Checkbox id="order-permission-write-new" checked={permissions.orders.write} onChange={setInitialPermissions}/>
+              <Checkbox
+                id="order-permission-write-new"
+                checked={permissions.orders.write}
+                onChange={setInitialPermissions}
+              />
             </div>
             <div>
               <p className="me-0 d-inline-block">Customers Write</p>
-              <Checkbox id="customer-permission-write-new" checked={permissions.customers.write} onChange={setInitialPermissions}/>
+              <Checkbox
+                id="customer-permission-write-new"
+                checked={permissions.customers.write}
+                onChange={setInitialPermissions}
+              />
             </div>
             <div>
               <p className="me-0 d-inline-block">Products and Services Write</p>
-              <Checkbox id="product-permission-write-new" checked={permissions.productsAndServices.write} onChange={setInitialPermissions}/>
+              <Checkbox
+                id="product-permission-write-new"
+                checked={permissions.productsAndServices.write}
+                onChange={setInitialPermissions}
+              />
             </div>
           </Box>
           <Box display={"flex"} justifyContent={"space-between"}>
             <div>
               <p className="me-0 d-inline-block">Orders Delete</p>
-              <Checkbox id="order-permission-delete-new" checked={permissions.orders.delete} onChange={setInitialPermissions}/>
+              <Checkbox
+                id="order-permission-delete-new"
+                checked={permissions.orders.delete}
+                onChange={setInitialPermissions}
+              />
             </div>
             <div>
               <p className="me-0 d-inline-block">Customers Delete</p>
-              <Checkbox id="customer-permission-delete-new" checked={permissions.customers.delete} onChange={setInitialPermissions}/>
+              <Checkbox
+                id="customer-permission-delete-new"
+                checked={permissions.customers.delete}
+                onChange={setInitialPermissions}
+              />
             </div>
             <div>
               <p className="me-0 d-inline-block">
                 Products and Services Delete
               </p>
-              <Checkbox id="product-permission-delete-new" checked={permissions.productsAndServices.delete} onChange={setInitialPermissions}/>
+              <Checkbox
+                id="product-permission-delete-new"
+                checked={permissions.productsAndServices.delete}
+                onChange={setInitialPermissions}
+              />
             </div>
           </Box>
           <Box
