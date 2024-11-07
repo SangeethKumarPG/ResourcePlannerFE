@@ -61,7 +61,7 @@ function SupportTicket() {
   // console.log("Customers:", customers);
   // console.log("Orders:", orders);
   // console.log("Tickets:", tickets);
-  console.log("Agents:", agents);
+  // console.log("Agents:", agents);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("recent");
@@ -91,7 +91,7 @@ function SupportTicket() {
   };
 
   const addCommentToTicket = () => {
-    console.log("Comment Text: ", commentText);
+    // console.log("Comment Text: ", commentText);
     dispatch(addComment(commentText)).then(() => setRefresh(true));
     setCommentText({
       comment: "",
@@ -168,12 +168,12 @@ function SupportTicket() {
 
   const handleAssignAgent = (e, inputValue, ticketId) => {
     e.preventDefault();
-    console.log("Assign Agent: ", inputValue);
-    console.log("Ticket id: ", ticketId);
+    // console.log("Assign Agent: ", inputValue);
+    // console.log("Ticket id: ", ticketId);
     dispatch(assignAgent({ agentId: inputValue._id, ticketId: ticketId }));
   };
   const handleUpdateTicketStatus = () => {
-    console.log("Ticket Status Update: ", ticketStatusUpdate);
+    // console.log("Ticket Status Update: ", ticketStatusUpdate);
     dispatch(changeTicketStatus(ticketStatusUpdate)).then(() =>
       setRefresh(true)
     );
@@ -444,7 +444,7 @@ function SupportTicket() {
                       value={ticketStatusUpdate?.status || ticket?.status}
                       onChange={(e) => {
                         e.preventDefault();
-                        console.log("Status: ", e.target.value);
+                        // console.log("Status: ", e.target.value);
                         setTicketStatusUpdate({
                           ...ticketStatusUpdate,
                           ticketId: ticket._id,

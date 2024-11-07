@@ -79,7 +79,7 @@ function CustomerInfo({
       if (activeOrders.length > 0 && plans.length > 0) {
         mapDataToGrid(activeOrders, plans);
       } else {
-        console.log("No active orders found for this customer");
+        // console.log("No active orders found for this customer");
       }
     }
   }, [selectedCustomer, orders, items]);
@@ -167,7 +167,7 @@ function CustomerInfo({
   };
 
   const handleEdit = (customer) => {
-    console.log(customer);
+    // console.log(customer);
     setAddCustomerDialog(true);
     setIsEditing(true);
     setFormData({
@@ -230,7 +230,7 @@ function CustomerInfo({
   const handleAddorEdit = (event) => {
     event.preventDefault();
     if (isEditing) {
-      console.log(formData);
+      // console.log(formData);
       dispatch(editCustomer(formData)).then(() => setRefresh(true));
     } else {
       // console.log(formData);

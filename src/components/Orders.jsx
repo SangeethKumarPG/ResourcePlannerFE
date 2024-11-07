@@ -46,7 +46,7 @@ import {
 import dayjs from "dayjs";
 import "./Orders.css";
 
-function Orders({ setSelectedCustomer, setSelectedView }) {
+function Orders({ setSelectedCustomer, setSelectedView, daysToExpiry, setDaysToExpiry }) {
   const dispatch = useDispatch();
   const { items, status } = useSelector((state) => state.productsAndServices);
   const { customers } = useSelector((state) => state.customers);
@@ -59,7 +59,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
       dispatch(fetchOrders());
       setRefresh(false);
     }
-  }, [status, refresh, dispatch]);
+  }, [status, refresh, dispatch, daysToExpiry]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isRenew, setIsRenew] = useState(false);
@@ -137,7 +137,7 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     boxShadow: 24,
     p: 4,
   };
-
+  // console.log("Days to expiry : ", daysToExpiry)
   const [open, setOpen] = useState(false);
   const handleOpen = (user) => {
     const userDetails = customers.filter(
@@ -180,14 +180,21 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
     const formattedExpiryDate = row.expiryDate
       ? dayjs(row.expiryDate).format("DD/MM/YYYY")
       : "";
-    return (
+      const daysRemaining = dayjs(row.expiryDate).diff(dayjs(), "days");
+      const matchesSearchText =
       row.domainName.toLowerCase().includes(searchText.toLowerCase()) ||
       row.userName.toLowerCase().includes(searchText.toLowerCase()) ||
       row.planName.toLowerCase().includes(searchText.toLowerCase()) ||
       formattedPaymentDate.includes(searchText) ||
       formattedOrderDate.includes(searchText) ||
-      formattedExpiryDate.includes(searchText)
-    );
+      formattedExpiryDate.includes(searchText);
+
+      const matchesExpiryFilter =
+      (daysToExpiry === "expired" && daysRemaining < 0) ||
+      (daysToExpiry === "today" && daysRemaining === 0) ||
+      (daysToExpiry === "threedays" && daysRemaining > 0 && daysRemaining <= 3);
+
+    return matchesSearchText && (daysToExpiry ? matchesExpiryFilter : true);
   });
   const columns = [
     { field: "domainName", headerName: "Domain Name", width: 200 },
@@ -401,6 +408,61 @@ function Orders({ setSelectedCustomer, setSelectedView }) {
          
         </div>
       </div> */}
+
+      <Box className="my-2 p-1 pe-2" display={"flex"} flexDirection={"row"} justifyContent={'space-between'}>
+        <Box >
+          <Button variant="outlined"
+          sx={{
+            '&:hover':{
+              backgroundColor:"green",
+              color:"white"
+            }
+          }}
+          onClick={() => setDaysToExpiry(null)}
+          >
+            Clear
+          </Button>
+        </Box>
+        <Box>
+          <Button variant="outlined"
+            sx={{
+              '&:hover':{
+                backgroundColor:"black",
+                color:"white"
+              }
+            }}
+            onClick={() => setDaysToExpiry("expired")}
+          >
+            Expired
+          </Button>
+        </Box>
+        <Box>
+          <Button variant="outlined"
+          sx={{
+            '&:hover':{
+              backgroundColor:"red",
+              color:"white"
+            }
+          }}
+          onClick={() => setDaysToExpiry("today")}
+          >
+            Today
+          </Button>
+        </Box>
+        <Box>
+          <Button variant="outlined"
+            sx={{
+              '&:hover':{
+                backgroundColor:'orange',
+                color:"white"
+              }
+            }}
+            onClick={() => setDaysToExpiry("threedays")}
+          >
+            3Days
+          </Button>
+        </Box>
+      </Box>
       <Box
         sx={{
           height: 500,

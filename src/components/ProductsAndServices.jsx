@@ -149,7 +149,7 @@ function ProductsAndServices() {
   };
 
   const handleDelete = (row) => {
-    console.log("Delete:", row);
+    // console.log("Delete:", row);
     dispatch(deleteProductsServices(row._id));
   };
 

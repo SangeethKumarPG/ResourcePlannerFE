@@ -51,7 +51,7 @@ function PaymentRedirect() {
     const response = await fetchOrderByIdAPI(id);
     if (response.status === 200) {
       setOrder(response.data);
-      console.log(response.data);
+      // console.log(response.data);
     } else {
       toast.error("Error fetching order details");
     }

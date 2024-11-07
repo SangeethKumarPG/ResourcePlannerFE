@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import LoggInIcon from "@mui/icons-material/Login";
 import { toast } from "react-toastify";
+import LogoutIcon from '@mui/icons-material/Logout';
 function Header({isLoggedIn, setIsLoggedIn}) {
   const navigate = useNavigate();
   const checkUserCredentials = ()=>{
@@ -36,19 +37,18 @@ function Header({isLoggedIn, setIsLoggedIn}) {
               <img
                 alt=""
                 src={logo}
-                width={"120"}
+                width={"100"}
                 height={"60"}
-                className="d-inline-block align-top"
+                className="d-inline-block align-top m-0 p-0"
               />
 
-              <p className="d-inline-block align-top mt-3 ms-0 b-0">
-                Resource Planner
+              <p className="d-inline-block align-top mt-3 ms-0 b-0 p-0">
+                ResourcePlanner
               </p>
             </Navbar.Brand>
           </Link>
         </Container>
-        <Button variant="contained" color="success" startIcon={<LoggInIcon />} onClick={handleLogout}>
-          {isLoggedIn ? "Logout" : "Login"}
+        <Button variant="contained"  color={isLoggedIn?"error":"success"} startIcon={isLoggedIn ? <LogoutIcon />:<LoggInIcon />} onClick={handleLogout} >
         </Button>
       </Navbar>
     </>

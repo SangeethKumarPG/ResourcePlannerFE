@@ -23,7 +23,7 @@ import { fetchTickets } from "../redux/ticketSlice";
 import { fetchAgents } from "../redux/agentSlice";
 import './Dashboard.css';
 
-function Dashboard() {
+function Dashboard({setSelectedView, daysToExpiry, setDaysToExpiry}) {
   const dispatch = useDispatch();
   const { orders } = useSelector((state) => state.orders);
   const { tickets } = useSelector((state) => state.tickets);
@@ -47,7 +47,7 @@ function Dashboard() {
     setMonthlyOrdersCard();
     setPlanDataCard();
   }, [tickets, orders, agents]);
-  console.log("Tickets : ", tickets);
+  // console.log("Tickets : ", tickets);
   const setIssuesCard = () => {
     const open = [];
     const pending = [];
@@ -74,7 +74,7 @@ function Dashboard() {
       },
       { name: "Resolved Issues", count: closed.length, fill: "green" },
     ]);
-    console.log(data);
+    // console.log(data);
   };
 
   const setExpirationCard = () => {
@@ -172,7 +172,7 @@ function Dashboard() {
         count:planDataMap[planName]
       })
     })
-    console.log("Top Plans : ", topPlans);
+    // console.log("Top Plans : ", topPlans);
     setMostSoldPlans(topPlans);
   }
 
@@ -187,6 +187,7 @@ function Dashboard() {
             className="indexCard"
             variant="outlined"
             style={{ backgroundColor: "black", color: "white", height: "12rem" }}
+            onClick={() => {setSelectedView(1); setDaysToExpiry("expired")}}
           >
             <CardContent className="d-flex align-items-center justify-content-center flex-column p-2 mt-5">
               <Typography variant="h6" component="div">
@@ -201,6 +202,7 @@ function Dashboard() {
             className="indexCard"
             variant="outlined"
             style={{ backgroundColor: "red", color: "white", height: "12rem" }}
+            onClick={() => {setSelectedView(1); setDaysToExpiry("today")}}
           >
             <CardContent className="d-flex align-items-center justify-content-center flex-column p-3 mt-5">
               <Typography variant="h6" component="div">
@@ -219,6 +221,7 @@ function Dashboard() {
               color: "white",
               height: "12rem",
             }}
+            onClick={() => {setSelectedView(1); setDaysToExpiry("threedays")}}
           >
             <CardContent className="d-flex align-items-center justify-content-center flex-column p-2 mt-5">
               <Typography variant="h6" component="div">

@@ -23,6 +23,7 @@ function Home() {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const [daysToExpiry, setDaysToExpiry] = useState(null);
   useEffect(() => {
     if (sessionStorage.getItem("userData")) {
       setIsLoggedIn(true);
@@ -37,12 +38,18 @@ function Home() {
   const renderMainView = () => {
     switch (selectedView) {
       case 0:
-        return <Dashboard />;
+        return <Dashboard 
+        setSelectedView={setSelectedView}
+        daysToExpiry={daysToExpiry}
+        setDaysToExpiry={setDaysToExpiry}
+        />;
       case 1:
         return (
           <Orders
             setSelectedCustomer={setSelectedCustomer}
             setSelectedView={setSelectedView}
+            daysToExpiry={daysToExpiry}
+            setDaysToExpiry={setDaysToExpiry}
           />
         );
       case 2:
