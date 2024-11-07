@@ -9,6 +9,7 @@ import {
   InputLabel,
   FormControl,
   Box,
+  Autocomplete,
 } from "@mui/material";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import EditIcon from "@mui/icons-material/Edit";
@@ -62,15 +63,31 @@ function ProductsAndServices() {
     setShowSSL(false);
     setIsEditing(false);
   };
+  const [sslCertProviders, setSslCertProviders] = useState([]);
+  const [websiteHostProviders, setWebsiteHostProviders] = useState([]);
+  const [serverProviders, setServerProviders] = useState([]);
+  const [emailProviders, setEmailProviders] = useState([]);
 
   
   useEffect(()=>{
     dispatch(fetchProductsServices());
-
+   
   }, [dispatch])
   useEffect(()=>{
     setFilteredRows(items);
   },[items])
+  useEffect(()=>{
+    if(items && items.length>0){
+      setSslCertProviders([...new Set(items.map((item) => item.sslCertProvider).filter((item)=>item !== undefined && item!== null && item!==""))])
+      setWebsiteHostProviders([...new Set(items.map((item) => item.websiteHostProvider).filter((item)=>item !== undefined && item!== null && item!==""))])
+      setServerProviders([...new Set(items.map((item) => item.serverProvider).filter((item)=>item !== undefined && item!== null && item!==""))])
+      setEmailProviders([...new Set(items.map((item) => item.emailProvider).filter((item)=>item !== undefined && item!== null && item!==""))])
+    }
+  },[items])
+  // console.log("SSL Cert Providers",sslCertProviders);
+  // console.log("Website Host Providers",websiteHostProviders);
+  // console.log("Server Providers",serverProviders);
+  // console.log("Email Providers",emailProviders);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     serviceName : "",
@@ -177,6 +194,7 @@ function ProductsAndServices() {
       setShowWebsite(false);
       setShowServer(false);
       setShowEmail(false);
+      // console.log("Add:", formData);
       dispatch(addProductsServices(formData))
     }
     handleClose();
@@ -336,81 +354,64 @@ function ProductsAndServices() {
 
           {showSSL && (
             <>
-            <FormControl   variant="outlined"   fullWidth className="mt-2">
-            <InputLabel id="sslCertProvider" className="mt-2">
-                SSL Certificate Provider
-              </InputLabel>
-              <Select
-                labelId="sslCertProvider"
-                id="sslCertProvider"
-                label="SSL Certificate Provider"
-                variant="outlined"
-                className="mt-2"
+              <Autocomplete
+                freeSolo
+                id="sslcert-provider"
+                options={sslCertProviders}
                 fullWidth
+                className="mt-2"
                 value={formData.sslCertProvider}
-                onChange={(e) => setFormData({...formData, sslCertProvider: e.target.value || ""})}
-              >
-                <MenuItem value="godaddy">GoDaddy</MenuItem>
-                <MenuItem value="comodo">Comodo</MenuItem>
-                <MenuItem value="symantec">Symantec</MenuItem>
-                <MenuItem value="cloudflare">Cloud Flare</MenuItem>
-              </Select>
-            </FormControl>
-              
+                onInputChange={(e, newValue) => {
+                  if(newValue){
+                    // console.log(newValue);
+                    setFormData({...formData, sslCertProvider: newValue || ""})
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} label="SSL Certificate Provider" variant="outlined" />
+                )}/>
             </>
           )}
 
           {showWebsite && (
             <>
-              <FormControl   variant="outlined"   fullWidth className="mt-2">
-            <InputLabel id="websiteHostingProvider" className="mt-2">
-                Website Hosting Provider
-              </InputLabel>
-              <Select
-                labelId="websiteHostingProvider"
-                id="websiteHostingProvider"
-                label="Website Hosting Provider"
-                variant="outlined"
-                className="mt-2"
-                fullWidth
-                value={formData.websiteHostProvider}
-                onChange={(e) => setFormData({...formData, websiteHostProvider: e.target.value || ""})}
-              >
-                <MenuItem value="godaddy">GoDaddy</MenuItem>
-                <MenuItem value="hostinger">Hostinger</MenuItem>
-                <MenuItem value="aws">AWS</MenuItem>
-                <MenuItem value="cloudflare">Cloud Flare</MenuItem>
-              </Select>
-            </FormControl>
+
+            <Autocomplete
+              id="website-host-provider"
+              options={websiteHostProviders}
+              fullWidth
+              freeSolo
+              className="mt-2"
+              value={formData.websiteHostProvider}
+              onInputChange={(e, value) =>{
+                if(value){
+                 setFormData({...formData, websiteHostProvider: value || ""})}
+                }
+              }
+              renderInput={(params) => (
+                <TextField {...params} label="Website Hosting Provider" variant="outlined" />
+              )}/>
             </>
           )}
 
           {showServer && (
             <>
-            <FormControl   variant="outlined"   fullWidth className="mt-2">
-            <InputLabel id="serverProvider" className="mt-2">
-                Server Provider
-              </InputLabel>
-              <Select
-                labelId="serverProvider"
-                id="serverProvider"
-                variant="outlined"
-                className="mt-2"
-                label="Server Provider"
-                value={formData.serverProvider}
-                onChange={(e) => setFormData({...formData, serverProvider: e.target.value})}
-                fullWidth
-              >
-                <MenuItem value="aws">AWS</MenuItem>
-                <MenuItem value="azure">Azure</MenuItem>
-                <MenuItem value="google">Google</MenuItem>
-                <MenuItem value="hostinger">Hostinger</MenuItem>
-                <MenuItem value="godaddy">GoDaddy</MenuItem>
-                <MenuItem value="digitalocean">Digital Ocean</MenuItem>
-                <MenuItem value="rackspace">Rackspace</MenuItem>
-                <MenuItem value="linode">Linode</MenuItem>
-              </Select>
-            </FormControl>
+
+            <Autocomplete
+              id="server-provider"
+              options={serverProviders}
+              fullWidth
+              freeSolo
+              className="mt-2"
+              value={formData.serverProvider}
+              onInputChange={(e, value) => {
+                if(value){
+                  setFormData({...formData, serverProvider: value || ""})}
+                }
+              }
+              renderInput={(params) => (
+                <TextField {...params} label="Server Provider" variant="outlined" />
+              )}/>
               
 
               <TextField
@@ -429,26 +430,22 @@ function ProductsAndServices() {
 
           {showEmail && (
             <>
-            <FormControl   variant="outlined"   fullWidth className="mt-2">
-            <InputLabel id="emailServerProvider" className="mt-2">
-                Email Server Provider
-              </InputLabel>
-              <Select
-                labelId="emailServerProvider"
-                id="emailServerProvider"
-                variant="outlined"
-                name="emailServerProvider"
-                fullWidth
-                className="mt-2"
-                value={formData.emailProvider}
-                onChange={(e) => setFormData({...formData, emailProvider: e.target.value})}
-              >
-                <MenuItem value="microsoft">Microsoft</MenuItem>
-                <MenuItem value="google">Google</MenuItem>
-                <MenuItem value="hostinger">Hostinger</MenuItem>
-              </Select>
 
-            </FormControl>
+            <Autocomplete
+              id="email-provider"
+              options={emailProviders}
+              fullWidth
+              freeSolo
+              className="mt-2"
+              value={formData.emailProvider}
+              onInputChange={(e, value) => {
+                if(value){
+                  setFormData({...formData, emailProvider: value || ""})}
+                }
+              }
+              renderInput={(params) => (
+                <TextField {...params} label="Email Server Provider" variant="outlined" />
+              )}/>
               
               <TextField
                 margin="dense"
